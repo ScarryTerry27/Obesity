@@ -19,11 +19,7 @@ class OperationDataRepository:
         )
         return self.session.execute(stmt).scalar_one_or_none()
 
-    def upsert(self, obj: OperationData) -> OperationData:
-        existing = self.get_point(obj.person_id, obj.point)
-        if existing:
-            existing.data = obj.data
-            return existing
+    def add(self, obj: OperationData) -> OperationData:
         self.session.add(obj)
         return obj
 

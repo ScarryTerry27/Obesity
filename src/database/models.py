@@ -11,7 +11,6 @@ from sqlalchemy import (
     Float,
     String,
     Boolean,
-    JSON,
 )
 from sqlalchemy.sql import func
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -20,6 +19,7 @@ from database.enums.ariscat import AriscatAge, AriscatSpO2, AriscatRespInfect, A
     AriscatDuration, AriscatEmergency
 from database.enums.elganzouri import DifficultIntubationHx, WeightBand, MandibleProtrusion, NeckMobility, Mallampati, \
     Thyromental, MouthOpening
+from database.parameters import PARAMETER_KEYS
 
 Base = declarative_base()
 
@@ -417,7 +417,13 @@ class OperationData(Base):
         index=True,
     )
     point = Column(String(3), nullable=False)  # T0..T12
-    data = Column(JSON, nullable=False, default=dict)
+
+    # dynamically add columns for each параметр
+    for key in PARAMETER_KEYS:
+        locals()[key] = Column(String, nullable=True)
+        locals()[f"{key}_min"] = Column(String, nullable=True)
+        locals()[f"{key}_max"] = Column(String, nullable=True)
+        locals()[f"{key}_unit"] = Column(String, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
