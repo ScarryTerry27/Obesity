@@ -17,3 +17,5 @@ def settings():
         st.session_state["current_patient_id"] = None
     if "current_patient_info" not in st.session_state:
         st.session_state["current_patient_info"] = None
+    if "current_op_point" not in st.session_state:
+        st.session_state["current_op_point"] = None

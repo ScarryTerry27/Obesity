@@ -1,8 +1,16 @@
 from sqlalchemy.orm import declarative_base, relationship
 
 from sqlalchemy import (
-    Column, Integer, ForeignKey, DateTime,
-    UniqueConstraint, Enum as SAEnum, SmallInteger, Float, String, Boolean
+    Column,
+    Integer,
+    ForeignKey,
+    DateTime,
+    UniqueConstraint,
+    Enum as SAEnum,
+    SmallInteger,
+    Float,
+    String,
+    Boolean,
 )
 from sqlalchemy.sql import func
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -11,6 +19,7 @@ from database.enums.ariscat import AriscatAge, AriscatSpO2, AriscatRespInfect, A
     AriscatDuration, AriscatEmergency
 from database.enums.elganzouri import DifficultIntubationHx, WeightBand, MandibleProtrusion, NeckMobility, Mallampati, \
     Thyromental, MouthOpening
+from database.parameters import PARAMETER_KEYS
 
 Base = declarative_base()
 
@@ -30,6 +39,12 @@ class Person(Base):
         "PersonScales",
         back_populates="person",
         uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    operation_data = relationship(
+        "OperationData",
+        back_populates="person",
         cascade="all, delete-orphan",
     )
 
@@ -384,3 +399,33 @@ class CapriniResult(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     scales = relationship("PersonScales", back_populates="caprini")
+
+
+class OperationData(Base):
+    """Показатели для одной точки наблюдения (T0..T12)."""
+
+    __tablename__ = "operation_data"
+    __table_args__ = (
+        UniqueConstraint("person_id", "point", name="uq_person_point"),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    person_id = Column(
+        Integer,
+        ForeignKey("persons.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    point = Column(String(3), nullable=False)  # T0..T12
+
+    # dynamically add columns for each параметр
+    for key in PARAMETER_KEYS:
+        locals()[key] = Column(String, nullable=True)
+        locals()[f"{key}_min"] = Column(String, nullable=True)
+        locals()[f"{key}_max"] = Column(String, nullable=True)
+        locals()[f"{key}_unit"] = Column(String, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    person = relationship("Person", back_populates="operation_data")
