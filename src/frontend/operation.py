@@ -94,12 +94,12 @@ def show_operation_point():
 
     with st.form("op_point_form"):
         name = st.text_input("Параметр")
-        value = st.number_input("Значение", format="%f")
+        value = st.text_input("Значение")
         unit = st.text_input("Ед. изм.")
         submitted = st.form_submit_button("Добавить", use_container_width=True)
 
     if submitted and name:
-        data = OperationDataInput(point=point, name=name, value=value, unit=unit or None)
+        data = OperationDataInput(point=point, name=name, value=value or None, unit=unit or None)
         op_add_measure(person_id, data)
         st.success("Сохранено")
         st.rerun()

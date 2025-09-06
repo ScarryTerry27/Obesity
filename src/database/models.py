@@ -399,10 +399,10 @@ class OperationData(Base):
     person_id = Column(Integer, ForeignKey("persons.id", ondelete="CASCADE"), nullable=False, index=True)
     point = Column(String(3), nullable=False)  # T0..T12
     name = Column(String(255), nullable=False)
-    value = Column(Float, nullable=True)
-    unit = Column(String(32), nullable=True)
-    min_value = Column(Float, nullable=True)
-    max_value = Column(Float, nullable=True)
+    value = Column(String(255), nullable=True)
+    unit = Column(String(255), nullable=True)
+    min_value = Column(String(255), nullable=True)
+    max_value = Column(String(255), nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

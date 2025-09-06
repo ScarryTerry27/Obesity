@@ -4,10 +4,10 @@ from pydantic import BaseModel
 class OperationDataInput(BaseModel):
     point: str
     name: str
-    value: float | None = None
+    value: str | None = None
     unit: str | None = None
-    min_value: float | None = None
-    max_value: float | None = None
+    min_value: str | None = None
+    max_value: str | None = None
 
 
 class OperationDataRead(OperationDataInput):
