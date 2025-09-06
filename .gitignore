@@ -1,0 +1,3 @@
+src/.env
+src/patients_db.sqlite3
+**/.idea
