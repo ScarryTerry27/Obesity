@@ -16,10 +16,25 @@ from sqlalchemy import (
 from sqlalchemy.sql import func
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from database.enums.ariscat import AriscatAge, AriscatSpO2, AriscatRespInfect, AriscatAnemia, AriscatIncision, \
-    AriscatDuration, AriscatEmergency
-from database.enums.elganzouri import DifficultIntubationHx, WeightBand, MandibleProtrusion, NeckMobility, Mallampati, \
-    Thyromental, MouthOpening
+from database.enums.anesthesia import AnesthesiaType
+from database.enums.ariscat import (
+    AriscatAge,
+    AriscatSpO2,
+    AriscatRespInfect,
+    AriscatAnemia,
+    AriscatIncision,
+    AriscatDuration,
+    AriscatEmergency,
+)
+from database.enums.elganzouri import (
+    DifficultIntubationHx,
+    WeightBand,
+    MandibleProtrusion,
+    NeckMobility,
+    Mallampati,
+    Thyromental,
+    MouthOpening,
+)
 from database.parameters import PARAMETER_KEYS
 
 Base = declarative_base()
@@ -30,7 +45,7 @@ class Person(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     card_number = Column(String(64), nullable=True)
-    anesthesia_type = Column(String(128), nullable=True)
+    anesthesia_type = Column(SAEnum(AnesthesiaType, name="anesthesia_type"), nullable=True)
     last_name = Column(String(128), nullable=False)
     first_name = Column(String(128), nullable=False)
     patronymic = Column(String(128), nullable=True)

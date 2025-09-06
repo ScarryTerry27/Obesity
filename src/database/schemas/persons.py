@@ -3,13 +3,14 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date
 
+from database.enums.anesthesia import AnesthesiaType
 from database.schemas.person_scales import PersonScalesRead
 
 
 # ----- базовые -----
 class PersonBase(BaseModel):
     card_number: Optional[str] = None
-    anesthesia_type: Optional[str] = None
+    anesthesia_type: Optional[AnesthesiaType] = None
     last_name: str
     first_name: str
     patronymic: Optional[str] = None
@@ -26,7 +27,7 @@ class PersonCreate(PersonBase):
 
 class PersonUpdate(BaseModel):
     card_number: Optional[str] = None
-    anesthesia_type: Optional[str] = None
+    anesthesia_type: Optional[AnesthesiaType] = None
     last_name: Optional[str] = None
     first_name: Optional[str] = None
     patronymic: Optional[str] = None

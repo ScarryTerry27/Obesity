@@ -39,7 +39,12 @@ def add_patient():
     st.title("➕ Добавление пациента")
     with st.form("add_patient_form"):
         card_number = st.text_input("Номер карты")
-        anesthesia_type = st.text_input("Тип анестезии")
+        anesthesia_type = st.radio(
+            "Тип анестезии",
+            ["БОА", "ОА"],
+            index=0,
+            horizontal=True,
+        )
 
         c1, c2, c3 = st.columns(3)
         with c1:
