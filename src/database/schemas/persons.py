@@ -1,14 +1,20 @@
 from pydantic import BaseModel, Field
 
 from typing import Optional
+from datetime import date
 
 from database.schemas.person_scales import PersonScalesRead
 
 
 # ----- базовые -----
 class PersonBase(BaseModel):
-    fio: str
-    age: int
+    card_number: Optional[str] = None
+    anesthesia_type: Optional[str] = None
+    last_name: str
+    first_name: str
+    patronymic: Optional[str] = None
+    birth_date: date
+    inclusion_date: Optional[date] = None
     height: int
     weight: int
     gender: bool  # False=муж, True=жен
@@ -19,8 +25,13 @@ class PersonCreate(PersonBase):
 
 
 class PersonUpdate(BaseModel):
-    fio: Optional[str] = None
-    age: Optional[int] = None
+    card_number: Optional[str] = None
+    anesthesia_type: Optional[str] = None
+    last_name: Optional[str] = None
+    first_name: Optional[str] = None
+    patronymic: Optional[str] = None
+    birth_date: Optional[date] = None
+    inclusion_date: Optional[date] = None
     height: Optional[int] = None
     weight: Optional[int] = None
     gender: Optional[bool] = None  # False=муж, True=жен
@@ -28,6 +39,8 @@ class PersonUpdate(BaseModel):
 
 class PersonRead(PersonBase):
     id: int
+    fio: str
+    age: Optional[int] = None
     scales: Optional[PersonScalesRead] = None
 
     class Config:

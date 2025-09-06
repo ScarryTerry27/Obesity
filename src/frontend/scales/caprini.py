@@ -226,8 +226,6 @@ def show_caprini_scale():
         person_weight = int(getattr(person, "weight", def_weight) or def_weight)
 
         changed = {}
-        if int(age_years) != person_age:
-            changed["age"] = int(age_years)
         if int(height_cm) != person_height:
             changed["height"] = int(height_cm)
         if int(weight_kg) != person_weight:

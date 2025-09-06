@@ -16,7 +16,7 @@ class PersonsService:
         self.session = session
 
     def create_person(self, data: PersonCreate) -> PersonRead:
-        person = Person(**data.model_dump())
+        person = Person(**data.model_dump(exclude_none=True))
         self.repo.add(person)
         self.session.commit()
         self.session.refresh(person)

@@ -89,7 +89,12 @@ def export_patient_data():
 
     row = {
         "patient_id": person.id,
-        "ФИО": g(person, "fio", ""),
+        "№ карты": g(person, "card_number", ""),
+        "Фамилия": g(person, "last_name", ""),
+        "Имя": g(person, "first_name", ""),
+        "Отчество": g(person, "patronymic", ""),
+        "Дата включения": g(person, "inclusion_date", None),
+        "Тип анестезии": g(person, "anesthesia_type", ""),
         "Возраст (лет)": g(person, "age", None),
         "Рост (см)": g(person, "height", None),
         "Вес (кг)": g(person, "weight", None),

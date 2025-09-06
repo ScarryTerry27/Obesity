@@ -11,6 +11,7 @@ from sqlalchemy import (
     Float,
     String,
     Boolean,
+    Date,
 )
 from sqlalchemy.sql import func
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -28,8 +29,13 @@ class Person(Base):
     __tablename__ = "persons"
 
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
-    fio = Column(String(255), nullable=False)  # ФИО
-    age = Column(Integer, nullable=False)  # Возраст
+    card_number = Column(String(64), nullable=True)
+    anesthesia_type = Column(String(128), nullable=True)
+    last_name = Column(String(128), nullable=False)
+    first_name = Column(String(128), nullable=False)
+    patronymic = Column(String(128), nullable=True)
+    birth_date = Column(Date, nullable=False)
+    inclusion_date = Column(Date, nullable=False, server_default=func.current_date())
     height = Column(Integer, nullable=False)  # Рост (см)
     weight = Column(Integer, nullable=False)  # Вес (кг)
     gender = Column(Boolean, nullable=False, default=False)
@@ -47,6 +53,24 @@ class Person(Base):
         back_populates="person",
         cascade="all, delete-orphan",
     )
+
+    @hybrid_property
+    def fio(self):
+        parts = [self.last_name, self.first_name, self.patronymic]
+        return " ".join(p for p in parts if p)
+
+    @hybrid_property
+    def age(self):
+        from datetime import date
+
+        ref = self.inclusion_date or date.today()
+        if not self.birth_date:
+            return None
+        return (
+            ref.year
+            - self.birth_date.year
+            - ((ref.month, ref.day) < (self.birth_date.month, self.birth_date.day))
+        )
 
     def __repr__(self):
         sex = "Ж" if self.gender else "М"

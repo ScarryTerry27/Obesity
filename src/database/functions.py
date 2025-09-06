@@ -18,10 +18,34 @@ from database.services.operation import OperationDataService
 from database.services.utils import NotFoundError
 
 
-def create_person(fio, age, height, weight, gender) -> PersonRead:
+def create_person(
+    card_number,
+    anesthesia_type,
+    last_name,
+    first_name,
+    patronymic,
+    birth_date,
+    inclusion_date,
+    height,
+    weight,
+    gender,
+) -> PersonRead:
     with SessionLocal() as session:
         service = PersonsService(session)
-        p = service.create_person(PersonCreate(fio=fio, age=age, height=height, weight=weight, gender=gender))
+        p = service.create_person(
+            PersonCreate(
+                card_number=card_number,
+                anesthesia_type=anesthesia_type,
+                last_name=last_name,
+                first_name=first_name,
+                patronymic=patronymic,
+                birth_date=birth_date,
+                inclusion_date=inclusion_date,
+                height=height,
+                weight=weight,
+                gender=gender,
+            )
+        )
         return p
 
 
