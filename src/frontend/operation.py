@@ -146,7 +146,12 @@ def _render_point_list(points: list[str], items: list[OperationPointRead]):
         with col1:
             st.markdown(f"**{p} — {label}**  \nСтатус: {text}")
         with col2:
-            create_big_button("Перейти", on_click=_open_point, kwargs={"point": p})
+            create_big_button(
+                "Перейти",
+                on_click=_open_point,
+                kwargs={"point": p},
+                key=f"open_{p}",
+            )
 
 
 def show_operation():
@@ -159,6 +164,7 @@ def show_operation():
         on_click=change_menu_item,
         kwargs={"item": "diagnosis_patient"},
         icon="⬅️",
+        key="back_operation",
     )
 
 
@@ -172,6 +178,7 @@ def show_postoperative():
         on_click=change_menu_item,
         kwargs={"item": "diagnosis_patient"},
         icon="⬅️",
+        key="back_postoperative",
     )
 
 
