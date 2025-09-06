@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, or_
 from sqlalchemy.orm import Session
 
 from database.models import Person
@@ -39,14 +39,21 @@ class PersonsRepository:
         return res.rowcount or 0
 
     def search_by_fio(self, query: str, limit: int = 50, offset: int = 0) -> Sequence[Person]:
-        """Ищет по подстроке в ФИО (регистр не важен)."""
+        """Ищет по подстроке в любом из полей ФИО (регистр не важен)."""
         q = (query or "").strip()
         if not q:
             return []
         stmt = (
             select(Person)
-            .where(Person.fio.ilike(f"%{q}%"))
-            .order_by(Person.fio.asc())
-            .offset(offset).limit(limit)
+            .where(
+                or_(
+                    Person.last_name.ilike(f"%{q}%"),
+                    Person.first_name.ilike(f"%{q}%"),
+                    Person.patronymic.ilike(f"%{q}%"),
+                )
+            )
+            .order_by(Person.last_name.asc(), Person.first_name.asc())
+            .offset(offset)
+            .limit(limit)
         )
         return self.session.execute(stmt).scalars().all()

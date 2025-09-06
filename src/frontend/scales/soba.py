@@ -40,7 +40,6 @@ def show_soba_scale():
         return
 
     # --- Текущие значения антропометрии из карточки пациента ---
-    cur_age = int(person.age or 40)
     cur_height = int(person.height or 170)   # см
     cur_weight = int(person.weight or 90)    # кг
 
@@ -48,9 +47,7 @@ def show_soba_scale():
 
     with st.form("soba_form"):
         st.markdown("### Антропометрия")
-        ca, cb, cc = st.columns(3)
-        with ca:
-            new_age = st.number_input("Возраст (лет)", min_value=1, max_value=120, value=cur_age, step=1)
+        cb, cc = st.columns(2)
         with cb:
             new_height = st.number_input("Рост (см)", min_value=80, max_value=250, value=cur_height, step=1)
         with cc:
@@ -96,8 +93,6 @@ def show_soba_scale():
     if submitted:
         # 1) обновим карточку пациента при изменениях
         changed = {}
-        if new_age != cur_age:
-            changed["age"] = int(new_age)
         if new_height != cur_height:
             changed["height"] = int(new_height)
         if new_weight != cur_weight:

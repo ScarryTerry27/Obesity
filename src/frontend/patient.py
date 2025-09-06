@@ -1,4 +1,5 @@
 import time
+from datetime import date
 
 import streamlit as st
 
@@ -37,20 +38,33 @@ def show_diagnosis_patient():
 def add_patient():
     st.title("➕ Добавление пациента")
     with st.form("add_patient_form"):
-        fio = st.text_input("ФИО")
+        card_number = st.text_input("Номер карты")
+        anesthesia_type = st.text_input("Тип анестезии")
 
         c1, c2, c3 = st.columns(3)
         with c1:
-            age = st.number_input("Возраст", min_value=12, max_value=120, step=1, value=30)
+            last_name = st.text_input("Фамилия")
         with c2:
-            height = st.number_input("Рост (см)", min_value=120, max_value=220, step=1, value=170)
+            first_name = st.text_input("Имя")
         with c3:
-            weight = st.number_input("Вес (кг)", min_value=20, max_value=260, step=1, value=80)
+            patronymic = st.text_input("Отчество")
 
-        gender_label = st.radio("Пол", ["Мужской", "Женский"], index=0, horizontal=True)
+        c4, c5 = st.columns(2)
+        with c4:
+            birth_date = st.date_input("Дата рождения", value=date(1990, 1, 1))
+        with c5:
+            inclusion_date = st.date_input("Дата включения", value=date.today())
+
+        c6, c7, c8 = st.columns(3)
+        with c6:
+            height = st.number_input("Рост (см)", min_value=120, max_value=220, step=1, value=170)
+        with c7:
+            weight = st.number_input("Вес (кг)", min_value=20, max_value=260, step=1, value=80)
+        with c8:
+            gender_label = st.radio("Пол", ["Мужской", "Женский"], index=0, horizontal=True)
+
         gender = (gender_label == "Женский")  # False=мужской, True=женский
 
-        # Просто подсказка по ИМТ
         try:
             bmi = weight / ((height / 100) ** 2)
             st.caption(f"ИМТ: **{bmi:.1f} кг/м²**")
@@ -60,11 +74,21 @@ def add_patient():
         submitted = st.form_submit_button("Добавить пациента", use_container_width=True)
 
     if submitted:
-        if not fio.strip():
+        if not last_name.strip() or not first_name.strip():
             st.error("Пожалуйста, укажите ФИО.")
             return
-        # age/height/weight уже валидны по min_value
-        p = create_person(fio, age, height, weight, gender)  # 👈 добавили gender
+        p = create_person(
+            card_number,
+            anesthesia_type,
+            last_name,
+            first_name,
+            patronymic,
+            birth_date,
+            inclusion_date,
+            height,
+            weight,
+            gender,
+        )
         st.success("Пациент добавлен!")
         time.sleep(0.3)
         st.session_state["current_patient_id"] = p.id
