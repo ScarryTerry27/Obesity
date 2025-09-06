@@ -50,7 +50,7 @@ def _stopbang_label(level):
 
 def _caprini_label(level):
     if level is None: return "—"
-    return ["Очень низкий", "Низкий", "Умеренный", "Высокий"][max(0, min(3, int(level)))]
+    return ["Очень низкий", "Низкий", "Умеренный", "Высокий", "Очень высокий"][max(0, min(4, int(level)))]
 
 
 def _rcri_risk(score):
