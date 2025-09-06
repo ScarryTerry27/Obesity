@@ -33,6 +33,12 @@ class Person(Base):
         cascade="all, delete-orphan",
     )
 
+    operation_data = relationship(
+        "OperationData",
+        back_populates="person",
+        cascade="all, delete-orphan",
+    )
+
     def __repr__(self):
         sex = "Ж" if self.gender else "М"
         return (
@@ -384,3 +390,21 @@ class CapriniResult(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     scales = relationship("PersonScales", back_populates="caprini")
+
+
+class OperationData(Base):
+    __tablename__ = "operation_data"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    person_id = Column(Integer, ForeignKey("persons.id", ondelete="CASCADE"), nullable=False, index=True)
+    point = Column(String(3), nullable=False)  # T0..T12
+    name = Column(String(255), nullable=False)
+    value = Column(Float, nullable=True)
+    unit = Column(String(32), nullable=True)
+    min_value = Column(Float, nullable=True)
+    max_value = Column(Float, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    person = relationship("Person", back_populates="operation_data")
