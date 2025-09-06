@@ -205,9 +205,10 @@ def show_operation():
     st.title("🧪 Операция")
     _render_point_list(OPERATION_POINTS, measures)
     create_big_button(
-        "⬅️ Назад",
+        "Назад",
         on_click=change_menu_item,
         kwargs={"item": "diagnosis_patient"},
+        icon="⬅️",
         key="back_operation",
     )
 
@@ -218,9 +219,10 @@ def show_postoperative():
     st.title("🏥 Послеоперационный период")
     _render_point_list(POSTOP_POINTS, measures)
     create_big_button(
-        "⬅️ Назад",
+        "Назад",
         on_click=change_menu_item,
         kwargs={"item": "diagnosis_patient"},
+        icon="⬅️",
         key="back_postoperative",
     )
 
@@ -265,7 +267,8 @@ def show_operation_point():
 
     back_item = "operation" if point in OPERATION_POINTS else "postoperative_period"
     create_big_button(
-        "⬅️ Назад",
+        "Назад",
         on_click=change_menu_item,
         kwargs={"item": back_item},
+        icon="⬅️",
     )
