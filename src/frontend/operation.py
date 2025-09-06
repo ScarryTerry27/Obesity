@@ -1,3 +1,6 @@
+import re
+from datetime import datetime
+
 import streamlit as st
 
 from database.functions import op_get_points, op_save_point
@@ -129,6 +132,40 @@ PARAMETERS = {
 }
 
 
+def _split_label(label: str) -> tuple[str, str | None]:
+    """Return label without units and unit placeholder if present."""
+    m = re.search(r"\(([^)]+)\)$", label)
+    if m and not m.group(1).isdigit():
+        return label[: m.start()].strip(), m.group(1)
+    parts = label.split()
+    if len(parts) > 1:
+        last = parts[-1]
+        unit_candidate = last.strip().strip("()")
+        if unit_candidate and not unit_candidate.isdigit() and (
+            any(ch.isdigit() for ch in unit_candidate) or any(ch in "/%°" for ch in unit_candidate)
+        ):
+            return " ".join(parts[:-1]).strip(), unit_candidate
+    return label, None
+
+
+def _parse_date(value: str | None):
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def _parse_time(value: str | None):
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%H:%M").time()
+    except ValueError:
+        return None
+
+
 def _open_point(point: str):
     st.session_state["current_op_point"] = point
     change_menu_item(item="operation_point")
@@ -163,7 +200,6 @@ def show_operation():
         "⬅️ Назад",
         on_click=change_menu_item,
         kwargs={"item": "diagnosis_patient"},
-        icon="⬅️",
         key="back_operation",
     )
 
@@ -177,7 +213,6 @@ def show_postoperative():
         "⬅️ Назад",
         on_click=change_menu_item,
         kwargs={"item": "diagnosis_patient"},
-        icon="⬅️",
         key="back_postoperative",
     )
 
@@ -196,21 +231,33 @@ def show_operation_point():
     existing = current.data if current else {}
 
     with st.form("op_point_form"):
-        form_values = {}
-        for key, label in PARAMETERS.items():
-            form_values[key] = st.text_input(label, value=existing.get(key, ""))
+        form_values: dict[str, str] = {}
+        cols = st.columns(3)
+        for i, (key, label) in enumerate(PARAMETERS.items()):
+            base_label, placeholder = _split_label(label)
+            with cols[i % 3]:
+                if key == "date":
+                    value = _parse_date(existing.get(key))
+                    inp = st.date_input(base_label, value=value)
+                    form_values[key] = inp.isoformat() if inp else ""
+                elif key == "time":
+                    value = _parse_time(existing.get(key))
+                    inp = st.time_input(base_label, value=value)
+                    form_values[key] = inp.strftime("%H:%M") if inp else ""
+                else:
+                    form_values[key] = st.text_input(
+                        base_label, value=existing.get(key, ""), placeholder=placeholder
+                    )
         submitted = st.form_submit_button("Сохранить", use_container_width=True)
 
     if submitted:
         data = {k: (v or None) for k, v in form_values.items()}
         op_save_point(person_id, OperationPointInput(point=point, data=data))
         st.success("Сохранено")
-        st.rerun()
 
     back_item = "operation" if point in OPERATION_POINTS else "postoperative_period"
     create_big_button(
         "⬅️ Назад",
         on_click=change_menu_item,
         kwargs={"item": back_item},
-        icon="⬅️",
     )
