@@ -12,7 +12,18 @@ class OperationDataRepository:
         stmt = select(OperationData).where(OperationData.person_id == person_id)
         return list(self.session.execute(stmt).scalars().all())
 
-    def add(self, obj: OperationData) -> OperationData:
+    def get_point(self, person_id: int, point: str) -> OperationData | None:
+        stmt = (
+            select(OperationData)
+            .where(OperationData.person_id == person_id, OperationData.point == point)
+        )
+        return self.session.execute(stmt).scalar_one_or_none()
+
+    def upsert(self, obj: OperationData) -> OperationData:
+        existing = self.get_point(obj.person_id, obj.point)
+        if existing:
+            existing.data = obj.data
+            return existing
         self.session.add(obj)
         return obj
 

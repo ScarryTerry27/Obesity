@@ -6,7 +6,7 @@ from database.schemas.lee import LeeRcriRead, LeeRcriInput, LeeRcriUpdate
 from database.schemas.persons import PersonCreate, PersonRead, PersonUpdate
 from database.schemas.soba import SobaRead, SobaCreate, SobaUpdate
 from database.schemas.stopbang import StopBangRead, StopBangInput
-from database.schemas.operation import OperationDataInput, OperationDataRead
+from database.schemas.operation import OperationPointInput, OperationPointRead
 from database.services.ariscat import AriscatService
 from database.services.caprini import CapriniService
 from database.services.elganzouri import ElGanzouriService
@@ -173,14 +173,14 @@ def caprini_clear_result(person_id: int) -> bool:
         return svc.clear_result(person_id)
 
 
-def op_add_measure(person_id: int, data: OperationDataInput) -> OperationDataRead:
+def op_save_point(person_id: int, data: OperationPointInput) -> OperationPointRead:
     with SessionLocal() as session:
         svc = OperationDataService(session)
-        return svc.add_measure(person_id, data)
+        return svc.save_point(person_id, data)
 
 
-def op_get_measures(person_id: int) -> list[OperationDataRead]:
+def op_get_points(person_id: int) -> list[OperationPointRead]:
     with SessionLocal() as session:
         svc = OperationDataService(session)
-        return svc.list_measures(person_id)
+        return svc.list_points(person_id)
 

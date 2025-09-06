@@ -1,16 +1,12 @@
 from pydantic import BaseModel
 
 
-class OperationDataInput(BaseModel):
+class OperationPointInput(BaseModel):
     point: str
-    name: str
-    value: str | None = None
-    unit: str | None = None
-    min_value: str | None = None
-    max_value: str | None = None
+    data: dict[str, str | None]
 
 
-class OperationDataRead(OperationDataInput):
+class OperationPointRead(OperationPointInput):
     id: int
     person_id: int
 

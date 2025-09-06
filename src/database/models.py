@@ -1,8 +1,17 @@
 from sqlalchemy.orm import declarative_base, relationship
 
 from sqlalchemy import (
-    Column, Integer, ForeignKey, DateTime,
-    UniqueConstraint, Enum as SAEnum, SmallInteger, Float, String, Boolean
+    Column,
+    Integer,
+    ForeignKey,
+    DateTime,
+    UniqueConstraint,
+    Enum as SAEnum,
+    SmallInteger,
+    Float,
+    String,
+    Boolean,
+    JSON,
 )
 from sqlalchemy.sql import func
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -393,16 +402,22 @@ class CapriniResult(Base):
 
 
 class OperationData(Base):
+    """Показатели для одной точки наблюдения (T0..T12)."""
+
     __tablename__ = "operation_data"
+    __table_args__ = (
+        UniqueConstraint("person_id", "point", name="uq_person_point"),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    person_id = Column(Integer, ForeignKey("persons.id", ondelete="CASCADE"), nullable=False, index=True)
+    person_id = Column(
+        Integer,
+        ForeignKey("persons.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     point = Column(String(3), nullable=False)  # T0..T12
-    name = Column(String(255), nullable=False)
-    value = Column(String(255), nullable=True)
-    unit = Column(String(255), nullable=True)
-    min_value = Column(String(255), nullable=True)
-    max_value = Column(String(255), nullable=True)
+    data = Column(JSON, nullable=False, default=dict)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
