@@ -87,6 +87,8 @@ def export_patient_data():
     def g(obj, name, default=None):
         return getattr(obj, name, default) if obj is not None else default
 
+    atype = g(person, "anesthesia_type", None)
+
     row = {
         "patient_id": person.id,
         "№ карты": g(person, "card_number", ""),
@@ -94,7 +96,7 @@ def export_patient_data():
         "Имя": g(person, "first_name", ""),
         "Отчество": g(person, "patronymic", ""),
         "Дата включения": g(person, "inclusion_date", None),
-        "Тип анестезии": g(person, "anesthesia_type", ""),
+        "Тип анестезии": atype.value if atype else "",
         "Возраст (лет)": g(person, "age", None),
         "Рост (см)": g(person, "height", None),
         "Вес (кг)": g(person, "weight", None),
