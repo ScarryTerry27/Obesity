@@ -5,6 +5,7 @@ import streamlit as st
 from database.schemas.slice_t11 import SliceT11Input
 from database.functions import t11_get_result, t11_upsert_result, get_person
 from frontend.utils import change_menu_item
+from frontend.components import create_big_button
 
 
 FIELD_DEFS = [
@@ -128,4 +129,9 @@ def show_t11_slice():
         st.success("Данные сохранены")
         change_menu_item(item="postoperative_period")
         st.rerun()
-    st.button("⬅️ Назад", on_click=change_menu_item, kwargs={"item": "postoperative_period"})
+    create_big_button(
+        "⬅️ Назад",
+        on_click=change_menu_item,
+        kwargs={"item": "postoperative_period"},
+        key="back_btn",
+    )

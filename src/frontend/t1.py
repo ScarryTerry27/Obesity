@@ -5,6 +5,7 @@ import streamlit as st
 from database.schemas.slice_t1 import SliceT1Input
 from database.functions import t1_get_result, t1_upsert_result, get_person
 from frontend.utils import change_menu_item
+from frontend.components import create_big_button
 
 FIELD_DEFS = [
     ("date", "Дата", "", "date"),
@@ -107,4 +108,9 @@ def show_t1_slice():
         st.success("Данные сохранены")
         change_menu_item(item="operation")
         st.rerun()
-    st.button("⬅️ Назад", on_click=change_menu_item, kwargs={"item": "operation"})
+    create_big_button(
+        "⬅️ Назад",
+        on_click=change_menu_item,
+        kwargs={"item": "operation"},
+        key="back_btn",
+    )

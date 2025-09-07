@@ -5,6 +5,7 @@ import streamlit as st
 from database.schemas.slice_t7 import SliceT7Input
 from database.functions import t7_get_result, t7_upsert_result, get_person
 from frontend.utils import change_menu_item
+from frontend.components import create_big_button
 
 
 FIELD_DEFS = [
@@ -117,5 +118,10 @@ def show_t7_slice():
         st.success("Данные сохранены")
         change_menu_item(item="operation")
         st.rerun()
-    st.button("⬅️ Назад", on_click=change_menu_item, kwargs={"item": "operation"})
+    create_big_button(
+        "⬅️ Назад",
+        on_click=change_menu_item,
+        kwargs={"item": "operation"},
+        key="back_btn",
+    )
 

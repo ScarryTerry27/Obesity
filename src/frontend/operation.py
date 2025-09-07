@@ -5,7 +5,12 @@ from frontend.general import create_big_button
 
 
 def _back():
-    st.button("⬅️ Назад", on_click=change_menu_item, kwargs={"item": "diagnosis_patient"})
+    create_big_button(
+        "⬅️ Назад",
+        on_click=change_menu_item,
+        kwargs={"item": "diagnosis_patient"},
+        key="back_btn",
+    )
 
 def show_operation():
     person = st.session_state["current_patient_info"]
