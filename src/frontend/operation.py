@@ -16,6 +16,7 @@ def show_operation():
     t2_filled = bool(getattr(slices_status, "t2_filled", False)) if slices_status else False
     t3_filled = bool(getattr(slices_status, "t3_filled", False)) if slices_status else False
     t4_filled = bool(getattr(slices_status, "t4_filled", False)) if slices_status else False
+    t5_filled = bool(getattr(slices_status, "t5_filled", False)) if slices_status else False
 
     col_t1_1, col_t1_2 = st.columns([2, 1])
     with col_t1_1:
@@ -71,6 +72,20 @@ def show_operation():
             kwargs={"item": "show_t4_slice"},
             icon="📝",
             key="t4_btn",
+        )
+
+    col_t5_1, col_t5_2 = st.columns([2, 1])
+    with col_t5_1:
+        st.markdown(
+            f"**Срез t5 - в глубоком положении Тренделенбурга**  \nСтатус: {'✅ Заполнено' if t5_filled else '❌ Не заполнено'}"
+        )
+    with col_t5_2:
+        create_big_button(
+            "Перейти",
+            on_click=change_menu_item,
+            kwargs={"item": "show_t5_slice"},
+            icon="📝",
+            key="t5_btn",
         )
 
     _back()
