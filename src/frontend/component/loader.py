@@ -1,4 +1,6 @@
 import io
+from importlib import import_module
+
 import pandas as pd
 import streamlit as st
 
@@ -76,20 +78,14 @@ def export_patient_data():
     rcri = _safe(db_funcs.rcri_get_result, person.id, label="RCRI")  # -> LeeRcriRead | None
     cap = _safe(db_funcs.caprini_get_result, person.id, label="Caprini")  # -> CapriniRead | None
 
-    # 2b) Подтягиваем все срезы
-    t0 = _safe(db_funcs.t0_get_result, person.id, label="срез T0")
-    t1 = _safe(db_funcs.t1_get_result, person.id, label="срез T1")
-    t2 = _safe(db_funcs.t2_get_result, person.id, label="срез T2")
-    t3 = _safe(db_funcs.t3_get_result, person.id, label="срез T3")
-    t4 = _safe(db_funcs.t4_get_result, person.id, label="срез T4")
-    t5 = _safe(db_funcs.t5_get_result, person.id, label="срез T5")
-    t6 = _safe(db_funcs.t6_get_result, person.id, label="срез T6")
-    t7 = _safe(db_funcs.t7_get_result, person.id, label="срез T7")
-    t8 = _safe(db_funcs.t8_get_result, person.id, label="срез T8")
-    t9 = _safe(db_funcs.t9_get_result, person.id, label="срез T9")
-    t10 = _safe(db_funcs.t10_get_result, person.id, label="срез T10")
-    t11 = _safe(db_funcs.t11_get_result, person.id, label="срез T11")
-    t12 = _safe(db_funcs.t12_get_result, person.id, label="срез T12")
+    # 2b) Подтягиваем все срезы динамически (T0…T12)
+    slices_data = []
+    for idx in range(13):
+        getter = getattr(db_funcs, f"t{idx}_get_result", None)
+        data = _safe(getter, person.id, label=f"срез T{idx}") if getter else None
+        schema_module = import_module(f"database.schemas.slice_t{idx}")
+        schema_cls = getattr(schema_module, f"SliceT{idx}Input")
+        slices_data.append((f"T{idx}", data, schema_cls))
 
     # 3) Собираем одну строку с максимумом защит
     def g(obj, name, default=None):
@@ -154,59 +150,19 @@ def export_patient_data():
     if cap is not None:
         row["Caprini: риск"] = _caprini_label(cap.risk_level)
 
-    # 4) Составляем данные по срезам: перечисляем все поля каждой схемы,
-    # даже если срез не заполнен
-    from database.schemas.slice_t0 import SliceT0Input
-    from database.schemas.slice_t1 import SliceT1Input
-    from database.schemas.slice_t2 import SliceT2Input
-    from database.schemas.slice_t3 import SliceT3Input
-    from database.schemas.slice_t4 import SliceT4Input
-    from database.schemas.slice_t5 import SliceT5Input
-    from database.schemas.slice_t6 import SliceT6Input
-    from database.schemas.slice_t7 import SliceT7Input
-    from database.schemas.slice_t8 import SliceT8Input
-    from database.schemas.slice_t9 import SliceT9Input
-    from database.schemas.slice_t10 import SliceT10Input
-    from database.schemas.slice_t11 import SliceT11Input
-    from database.schemas.slice_t12 import SliceT12Input
-
-    slice_defs = [
-        ("T0", t0, SliceT0Input),
-        ("T1", t1, SliceT1Input),
-        ("T2", t2, SliceT2Input),
-        ("T3", t3, SliceT3Input),
-        ("T4", t4, SliceT4Input),
-        ("T5", t5, SliceT5Input),
-        ("T6", t6, SliceT6Input),
-        ("T7", t7, SliceT7Input),
-        ("T8", t8, SliceT8Input),
-        ("T9", t9, SliceT9Input),
-        ("T10", t10, SliceT10Input),
-        ("T11", t11, SliceT11Input),
-        ("T12", t12, SliceT12Input),
-    ]
-
-    slice_rows = []
-    for name, data, schema in slice_defs:
-        row_slice = {"Срез": name}
+    # 4) Добавляем все поля срезов в основную строку
+    for name, data, schema in slices_data:
         for field in schema.model_fields.keys():
-            row_slice[field] = getattr(data, field, None) if data is not None else None
-        slice_rows.append(row_slice)
+            row[f"{name}: {field}"] = getattr(data, field, None) if data is not None else None
 
     # 5) Покажем и дадим скачать
-    df_scales = pd.DataFrame([row])
-    df_slices = pd.DataFrame(slice_rows)
-    df_scales.replace({True: 1, False: 0}, inplace=True)
-    df_slices.replace({True: 1, False: 0}, inplace=True)
-    st.markdown("### Предпросмотр шкал")
-    st.dataframe(df_scales, width="stretch")
-    st.markdown("### Предпросмотр срезов")
-    st.dataframe(df_slices, width="stretch")
+    df = pd.DataFrame([row])
+    df.replace({True: 1, False: 0}, inplace=True)
+    st.markdown("### Предпросмотр")
+    st.dataframe(df, width="stretch")
 
     excel_buf = io.BytesIO()
-    with pd.ExcelWriter(excel_buf) as writer:
-        df_scales.to_excel(writer, index=False, sheet_name="Шкалы")
-        df_slices.to_excel(writer, index=False, sheet_name="Срезы")
+    df.to_excel(excel_buf, index=False)
 
     st.download_button(
         "⬇️ Скачать Excel",
