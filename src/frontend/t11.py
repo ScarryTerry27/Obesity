@@ -86,7 +86,7 @@ FIELD_DEFS = [
 def show_t11_slice():
     person = st.session_state["current_patient_info"]
     st.title(f"t11 показатели пациента {person.fio}")
-    st.caption("конец 1-х суток после операции")
+    st.caption("конец 2-х суток после операции")
 
     existing = t11_get_result(person.id)
     defaults = existing.model_dump() if existing else {}
