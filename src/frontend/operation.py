@@ -1,16 +1,32 @@
 import streamlit as st
 
 from frontend.utils import change_menu_item
+from frontend.general import create_big_button
 
 
 def _back():
     st.button("⬅️ Назад", on_click=change_menu_item, kwargs={"item": "diagnosis_patient"})
 
-
 def show_operation():
-    """Placeholder page for operation details."""
-    st.title("🧪 Операция")
-    st.info("Раздел находится в разработке")
+    person = st.session_state["current_patient_info"]
+    st.title(f"🧪 Операция пациента {person.fio}")
+
+    slices_status = getattr(person, "slices", None)
+    t2_filled = bool(getattr(slices_status, "t2_filled", False)) if slices_status else False
+    col_t2_1, col_t2_2 = st.columns([2, 1])
+    with col_t2_1:
+        st.markdown(
+            f"**Срез t2 - через 15 мин после эпидурального болюса**  \nСтатус: {'✅ Заполнено' if t2_filled else '❌ Не заполнено'}"
+        )
+    with col_t2_2:
+        create_big_button(
+            "Перейти",
+            on_click=change_menu_item,
+            kwargs={"item": "show_t2_slice"},
+            icon="📝",
+            key="t2_btn",
+        )
+
     _back()
 
 

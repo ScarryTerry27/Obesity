@@ -96,6 +96,6 @@ def show_t2_slice():
     if submitted:
         t2_upsert_result(person.id, SliceT2Input(**values))
         st.success("Данные сохранены")
-        change_menu_item(item="preoperative_exam")
+        change_menu_item(item="operation")
         st.rerun()
-    st.button("⬅️ Назад", on_click=change_menu_item, kwargs={"item": "preoperative_exam"})
+    st.button("⬅️ Назад", on_click=change_menu_item, kwargs={"item": "operation"})
