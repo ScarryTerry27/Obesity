@@ -113,7 +113,7 @@ def export_patient_data():
     }
 
     def add_scale(prefix, obj):
-        if not obj:
+        if obj is None:
             return
         data = obj.model_dump()
         data.pop("id", None)
@@ -126,7 +126,7 @@ def export_patient_data():
 
     # El-Ganzouri
     add_scale("ELG", elg)
-    if elg:
+    if elg is not None:
         row["ELG: рекомендация"] = _elg_plan(elg.total_score)
 
     # ARISCAT
@@ -134,30 +134,30 @@ def export_patient_data():
 
     # STOP-BANG
     add_scale("STOP-BANG", sb)
-    if sb:
+    if sb is not None:
         row["STOP-BANG: риск"] = _stopbang_label(sb.risk_level)
 
     # SOBA
     add_scale("SOBA", soba)
-    if soba:
+    if soba is not None:
         row["SOBA: STOP-BANG риск (кэш)"] = _stopbang_label(
             getattr(soba, "stopbang_risk_cached", None)
         )
 
     # Lee RCRI
     add_scale("RCRI", rcri)
-    if rcri:
+    if rcri is not None:
         row["RCRI: риск (частота осложнений)"] = _rcri_risk(rcri.total_score)
 
     # Caprini
     add_scale("Caprini", cap)
-    if cap:
+    if cap is not None:
         row["Caprini: риск"] = _caprini_label(cap.risk_level)
 
     # 4) Составляем данные по срезам
 
     def slice_row(name, data):
-        if not data:
+        if data is None:
             return {"Срез": name}
         d = data.model_dump()
         d.pop("id", None)

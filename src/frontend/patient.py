@@ -354,7 +354,7 @@ def export_patients():
 
             for slice_key in selected_slices:
                 data = _safe(slices[slice_key], person.id, label=f"срез {slice_key}")
-                if data:
+                if data is not None:
                     d = data.model_dump()
                     d.pop("id", None)
                     d.pop("slices_id", None)
