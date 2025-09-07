@@ -29,6 +29,8 @@ from database.schemas.slice_t6 import SliceT6Input, SliceT6Read
 from database.services.slice_t6 import SliceT6Service
 from database.schemas.slice_t7 import SliceT7Input, SliceT7Read
 from database.services.slice_t7 import SliceT7Service
+from database.schemas.slice_t8 import SliceT8Input, SliceT8Read
+from database.services.slice_t8 import SliceT8Service
 from database.services.utils import NotFoundError
 
 
@@ -376,5 +378,26 @@ def t7_upsert_result(person_id: int, data: SliceT7Input) -> SliceT7Read:
 def t7_clear_result(person_id: int) -> bool:
     with SessionLocal() as session:
         svc = SliceT7Service(session)
+        return svc.delete(person_id)
+
+
+def t8_get_result(person_id: int) -> SliceT8Read | None:
+    with SessionLocal() as session:
+        svc = SliceT8Service(session)
+        try:
+            return svc.get(person_id)
+        except NotFoundError:
+            return None
+
+
+def t8_upsert_result(person_id: int, data: SliceT8Input) -> SliceT8Read:
+    with SessionLocal() as session:
+        svc = SliceT8Service(session)
+        return svc.upsert(person_id, data)
+
+
+def t8_clear_result(person_id: int) -> bool:
+    with SessionLocal() as session:
+        svc = SliceT8Service(session)
         return svc.delete(person_id)
 
