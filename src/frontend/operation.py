@@ -18,6 +18,7 @@ def show_operation():
     t4_filled = bool(getattr(slices_status, "t4_filled", False)) if slices_status else False
     t5_filled = bool(getattr(slices_status, "t5_filled", False)) if slices_status else False
     t6_filled = bool(getattr(slices_status, "t6_filled", False)) if slices_status else False
+    t7_filled = bool(getattr(slices_status, "t7_filled", False)) if slices_status else False
 
     col_t1_1, col_t1_2 = st.columns([2, 1])
     with col_t1_1:
@@ -101,6 +102,20 @@ def show_operation():
             kwargs={"item": "show_t6_slice"},
             icon="📝",
             key="t6_btn",
+        )
+
+    col_t7_1, col_t7_2 = st.columns([2, 1])
+    with col_t7_1:
+        st.markdown(
+            f"**Срез t7 - после десуффляции газа из брюшной полости**  \nСтатус: {'✅ Заполнено' if t7_filled else '❌ Не заполнено'}"
+        )
+    with col_t7_2:
+        create_big_button(
+            "Перейти",
+            on_click=change_menu_item,
+            kwargs={"item": "show_t7_slice"},
+            icon="📝",
+            key="t7_btn",
         )
 
     _back()
