@@ -18,16 +18,6 @@ def show_diagnosis_patient():
         kwargs={"item": "preoperative_exam"},
         icon="👁️")
     create_big_button(
-        "Операция",
-        on_click=change_menu_item,
-        kwargs={"item": "operation"},
-        icon="🧪")
-    create_big_button(
-        "Послеоперационный период",
-        on_click=change_menu_item,
-        kwargs={"item": "postoperative_period"},
-        icon="🏥")
-    create_big_button(
         "Выгрузить данные пациента",
         on_click=change_menu_item,
         kwargs={"item": "export_patient_data"},

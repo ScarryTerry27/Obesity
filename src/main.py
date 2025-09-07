@@ -18,7 +18,6 @@ from frontend.scales.lee import show_lee_scale
 from frontend.scales.soba import show_soba_scale
 from frontend.scales.stopbang import show_stopbang_scale
 from frontend.component.loader import export_patient_data
-from frontend.operation import show_operation, show_postoperative, show_operation_point
 
 
 menu_items = {
@@ -30,9 +29,6 @@ menu_items = {
     "export_patients": export_patients,
     "diagnosis_patient": show_diagnosis_patient,
     "preoperative_exam": preoperative_exam,
-    "operation": show_operation,
-    "postoperative_period": show_postoperative,
-    "operation_point": show_operation_point,
     "export_patient_data": export_patient_data,
     "show_elganzouri_scale": show_el_ganzouri_form,
     "show_ariscat_scale": show_ariscat_scale,
