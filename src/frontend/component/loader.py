@@ -150,29 +150,19 @@ def export_patient_data():
     if cap is not None:
         row["Caprini: риск"] = _caprini_label(cap.risk_level)
 
-    # 4) Составляем данные по срезам: перечисляем все поля каждой схемы,
-    # даже если конкретный срез не заполнен
-    slice_rows = []
+    # 4) Добавляем все поля срезов в основную строку
     for name, data, schema in slices_data:
-        row_slice = {"Срез": name}
         for field in schema.model_fields.keys():
-            row_slice[field] = getattr(data, field, None) if data is not None else None
-        slice_rows.append(row_slice)
+            row[f"{name}: {field}"] = getattr(data, field, None) if data is not None else None
 
     # 5) Покажем и дадим скачать
-    df_scales = pd.DataFrame([row])
-    df_slices = pd.DataFrame(slice_rows)
-    df_scales.replace({True: 1, False: 0}, inplace=True)
-    df_slices.replace({True: 1, False: 0}, inplace=True)
-    st.markdown("### Предпросмотр шкал")
-    st.dataframe(df_scales, width="stretch")
-    st.markdown("### Предпросмотр срезов")
-    st.dataframe(df_slices, width="stretch")
+    df = pd.DataFrame([row])
+    df.replace({True: 1, False: 0}, inplace=True)
+    st.markdown("### Предпросмотр")
+    st.dataframe(df, width="stretch")
 
     excel_buf = io.BytesIO()
-    with pd.ExcelWriter(excel_buf) as writer:
-        df_scales.to_excel(writer, index=False, sheet_name="Шкалы")
-        df_slices.to_excel(writer, index=False, sheet_name="Срезы")
+    df.to_excel(excel_buf, index=False)
 
     st.download_button(
         "⬇️ Скачать Excel",
