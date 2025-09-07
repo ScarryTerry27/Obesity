@@ -1,4 +1,5 @@
 import io
+import os
 from importlib import import_module
 
 import pandas as pd
@@ -191,8 +192,19 @@ def export_patient_data():
             "Caprini": getattr(cap, "total_score", None),
         }
         pdf_path = generate_patient_report(patient_info, scales)
+        st.session_state["pdf_report_path"] = pdf_path
         st.success("Отчёт сформирован")
-        st.markdown(f"[Скачать PDF]({pdf_path})")
+
+    pdf_path = st.session_state.get("pdf_report_path")
+    if pdf_path and os.path.exists(pdf_path):
+        with open(pdf_path, "rb") as pdf_file:
+            st.download_button(
+                "⬇️ Скачать PDF",
+                data=pdf_file.read(),
+                file_name=os.path.basename(pdf_path),
+                mime="application/pdf",
+                key="download_pdf_btn",
+            )
 
     st.caption(
         "Если какая-то шкала или срез не заполнены, в выгрузке будут пустые значения для их полей."
