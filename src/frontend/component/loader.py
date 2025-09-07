@@ -110,46 +110,59 @@ def export_patient_data():
         "Вес (кг)": g(person, "weight", None),
         "Пол": ("Ж" if bool(getattr(person, "gender", False)) else "М"),
         "ИМТ": _bmi(g(person, "weight", None), g(person, "height", None)),
-
-        # El-Ganzouri
-        "ELG: сумма": g(elg, "total_score", None),
-        "ELG: рекомендация": _elg_plan(g(elg, "total_score", None)),
-
-        # ARISCAT
-        "ARISCAT: сумма": g(ar, "total_score", None),
-
-        # STOP-BANG
-        "STOP-BANG: сумма": g(sb, "total_score", None),
-        "STOP-BANG: риск": _stopbang_label(g(sb, "risk_level", None)),
-
-        # SOBA
-        "SOBA: STOP-BANG сумма (кэш)": g(soba, "stopbang_score_cached", None),
-        "SOBA: STOP-BANG риск (кэш)": _stopbang_label(g(soba, "stopbang_risk_cached", None)),
-        "SOBA: плохая ФН": g(soba, "poor_functional_status", None),
-        "SOBA: изменения ЭКГ": g(soba, "ekg_changes", None),
-        "SOBA: неконтр. АГ/ИБС": g(soba, "uncontrolled_htn_ihd", None),
-        "SOBA: SpO₂<94%": g(soba, "spo2_room_air_lt_94", None),
-        "SOBA: PaCO₂>28": g(soba, "hypercapnia_co2_gt_28", None),
-        "SOBA: ТГВ/ТЭЛА анамнез": g(soba, "vte_history", None),
-
-        # Lee RCRI
-        "RCRI: сумма": g(rcri, "total_score", None),
-        "RCRI: риск (частота осложнений)": _rcri_risk(g(rcri, "total_score", None)),
-
-        # Caprini
-        "Caprini: сумма": g(cap, "total_score", None),
-        "Caprini: риск": _caprini_label(g(cap, "risk_level", None)),
     }
+
+    def add_scale(prefix, obj):
+        if not obj:
+            return
+        data = obj.model_dump()
+        data.pop("id", None)
+        data.pop("scales_id", None)
+        score = data.pop("total_score", None)
+        if score is not None:
+            row[f"{prefix}: сумма"] = score
+        for field, value in data.items():
+            row[f"{prefix}: {field}"] = value
+
+    # El-Ganzouri
+    add_scale("ELG", elg)
+    if elg:
+        row["ELG: рекомендация"] = _elg_plan(elg.total_score)
+
+    # ARISCAT
+    add_scale("ARISCAT", ar)
+
+    # STOP-BANG
+    add_scale("STOP-BANG", sb)
+    if sb:
+        row["STOP-BANG: риск"] = _stopbang_label(sb.risk_level)
+
+    # SOBA
+    add_scale("SOBA", soba)
+    if soba:
+        row["SOBA: STOP-BANG риск (кэш)"] = _stopbang_label(
+            getattr(soba, "stopbang_risk_cached", None)
+        )
+
+    # Lee RCRI
+    add_scale("RCRI", rcri)
+    if rcri:
+        row["RCRI: риск (частота осложнений)"] = _rcri_risk(rcri.total_score)
+
+    # Caprini
+    add_scale("Caprini", cap)
+    if cap:
+        row["Caprini: риск"] = _caprini_label(cap.risk_level)
 
     # 4) Составляем данные по срезам
 
     def slice_row(name, data):
         if not data:
-            return {"slice": name}
+            return {"Срез": name}
         d = data.model_dump()
         d.pop("id", None)
         d.pop("slices_id", None)
-        d["slice"] = name
+        d["Срез"] = name
         return d
 
     slice_rows = [
