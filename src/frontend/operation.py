@@ -137,9 +137,26 @@ def show_operation():
 
 
 def show_postoperative():
-    """Placeholder page for postoperative period."""
-    st.title("🏥 Послеоперационный период")
-    st.info("Раздел находится в разработке")
+    person = st.session_state["current_patient_info"]
+    st.title(f"🏥 Послеоперационный период пациента {person.fio}")
+
+    slices_status = getattr(person, "slices", None)
+    t9_filled = bool(getattr(slices_status, "t9_filled", False)) if slices_status else False
+
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.markdown(
+            f"**Срез t9 - через час после перевода в АРО**  \nСтатус: {'✅ Заполнено' if t9_filled else '❌ Не заполнено'}"
+        )
+    with col2:
+        create_big_button(
+            "Перейти",
+            on_click=change_menu_item,
+            kwargs={"item": "show_t9_slice"},
+            icon="📝",
+            key="t9_btn",
+        )
+
     _back()
 
 
