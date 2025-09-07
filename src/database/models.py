@@ -1243,7 +1243,7 @@ class SliceT11(Base):
 
 
 class SliceT12(Base):
-    """Placeholder table for slice T12 data."""
+    """Data for slice T12 (end of fifth postoperative day)."""
 
     __tablename__ = "slice_t12"
     __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t12_slices"),)
@@ -1253,12 +1253,86 @@ class SliceT12(Base):
         Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
     )
 
+    date = Column(Date, nullable=True)
+    time = Column(Time, nullable=True)
+    rr_spont = Column(Float, nullable=True)
+    fev1 = Column(Float, nullable=True)
+    fvc = Column(Float, nullable=True)
+    frc = Column(Float, nullable=True)
+    tlc = Column(Float, nullable=True)
+    rv = Column(Float, nullable=True)
+    fev1_fvc = Column(Float, nullable=True)
+    pef = Column(Float, nullable=True)
+    mef25 = Column(Float, nullable=True)
+    mef50 = Column(Float, nullable=True)
+    mef75 = Column(Float, nullable=True)
+    fef25_75 = Column(Float, nullable=True)
+    heart_rate = Column(Float, nullable=True)
+    sbp = Column(Float, nullable=True)
+    dbp = Column(Float, nullable=True)
+    map = Column(Float, nullable=True)
+    spo2 = Column(Float, nullable=True)
+    urine_ml_per_h = Column(Float, nullable=True)
+    hemoglobin = Column(Float, nullable=True)
+    neutrophils = Column(Float, nullable=True)
+    lymphocytes = Column(Float, nullable=True)
+    hematocrit = Column(Float, nullable=True)
+    leukocytes = Column(Float, nullable=True)
+    bands = Column(Float, nullable=True)
+    albumin = Column(Float, nullable=True)
+    creatinine = Column(Float, nullable=True)
+    gfr = Column(Float, nullable=True)
+    nlr = Column(Float, nullable=True)
+    glucose = Column(Float, nullable=True)
+    stroke_volume = Column(Float, nullable=True)
+    cardiac_index = Column(Float, nullable=True)
+    svri = Column(Float, nullable=True)
+    cao = Column(Float, nullable=True)
+    do2 = Column(Float, nullable=True)
+    vbd = Column(Float, nullable=True)
+    uzl_score = Column(Float, nullable=True)
+    ph_arterial = Column(Float, nullable=True)
+    be_arterial = Column(Float, nullable=True)
+    hco3_arterial = Column(Float, nullable=True)
+    lactate_arterial = Column(Float, nullable=True)
+    pao2 = Column(Float, nullable=True)
+    pao2_fio2 = Column(Float, nullable=True)
+    paco2 = Column(Float, nullable=True)
+    sao2 = Column(Float, nullable=True)
+    pin_prick = Column(Boolean, nullable=True)
+    cold_test = Column(Boolean, nullable=True)
+    motor_block = Column(Boolean, nullable=True)
+    polo = Column(Boolean, nullable=True)
+    phrenic_syndrome = Column(Boolean, nullable=True)
+    phrenic_crsh = Column(Boolean, nullable=True)
+    aki = Column(Boolean, nullable=True)
+    complications = Column(String, nullable=True)
+    pain_nrs = Column(Float, nullable=True)
+    pain_nrs_min = Column(Float, nullable=True)
+    pain_nrs_max = Column(Float, nullable=True)
+    nausea_vomiting = Column(Boolean, nullable=True)
+    aldrete_score = Column(Float, nullable=True)
+    aldrete_time = Column(Float, nullable=True)
+    t_activation = Column(Float, nullable=True)
+    t_peristalsis = Column(Float, nullable=True)
+    t_first_gas = Column(Float, nullable=True)
+    opioid_consumption = Column(Float, nullable=True)
+    urinary_catheter_pain = Column(Float, nullable=True)
+    t_in_aro = Column(Float, nullable=True)
+    t_intense_pain = Column(Float, nullable=True)
+    t_restore_frc = Column(Float, nullable=True)
+    t_restore_gfr = Column(Float, nullable=True)
+    t_in_ward = Column(Float, nullable=True)
+    qor15 = Column(Float, nullable=True)
+    satisfied = Column(Boolean, nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
     slices = relationship("PersonSlices", back_populates="t12")
+
 
 
 class ElGanzouriResult(Base):
