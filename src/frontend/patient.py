@@ -189,7 +189,7 @@ def preoperative_exam():
     col_t0_1, col_t0_2 = st.columns([2, 1])
     with col_t0_1:
         st.markdown(
-            f"**Срез t0**  \nСтатус: {'✅ Заполнено' if t0_filled else '❌ Не заполнено'}"
+            f"**Срез t0 -  на момент поступления**  \nСтатус: {'✅ Заполнено' if t0_filled else '❌ Не заполнено'}"
         )
     with col_t0_2:
         create_big_button(
