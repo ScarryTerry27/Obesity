@@ -1,12 +1,76 @@
+import io
 import time
 from datetime import date
 
+import pandas as pd
 import streamlit as st
 
+import database.functions as db_funcs
 from database.functions import get_person, create_person, search_persons
 from frontend.general import create_big_button
 from frontend.scales.stopbang import _sb_risk_label
 from frontend.utils import change_menu_item
+
+
+def _safe(fetch_fn, *args, label="", default=None):
+    """Безопасный вызов обёртки: ловим любые ошибки и показываем их в UI."""
+    try:
+        return fetch_fn(*args)
+    except Exception as e:
+        st.warning(f"⚠️ Ошибка при получении {label or fetch_fn.__name__}: {e}")
+        return default
+
+
+def _bmi(weight_kg, height_cm):
+    try:
+        if not weight_kg or not height_cm:
+            return None
+        h_m = float(height_cm) / 100.0
+        if h_m <= 0:
+            return None
+        return round(float(weight_kg) / (h_m * h_m), 1)
+    except Exception:
+        return None
+
+
+def _elg_plan(score):
+    if score is None:
+        return "—"
+    if 0 <= score <= 3:
+        return "Обычная ларингоскопия"
+    if 4 <= score <= 7:
+        return "Видеоларингоскопия"
+    return "Интубация в сознании (бронхоскопия)"
+
+
+def _stopbang_label(level):
+    if level is None:
+        return "—"
+    return ["Низкий", "Промежуточный", "Высокий"][max(0, min(2, int(level)))]
+
+
+def _caprini_label(level):
+    if level is None:
+        return "—"
+    return [
+        "Очень низкий",
+        "Низкий",
+        "Умеренный",
+        "Высокий",
+        "Очень высокий",
+    ][max(0, min(4, int(level)))]
+
+
+def _rcri_risk(score):
+    if score is None:
+        return "—"
+    if score == 0:
+        return "≈0.4%"
+    if score == 1:
+        return "≈0.9%"
+    if score == 2:
+        return "≈7%"
+    return "≈11%+"
 
 
 def show_diagnosis_patient():
@@ -179,7 +243,143 @@ def find_patient():
 
 def export_patients():
     st.title("📤 Выгрузка всех пациентов")
-    st.write("Здесь будет функционал для выгрузки всех пациентов.")
+
+    scales = {
+        "ELG": "El-Ganzouri",
+        "ARISCAT": "ARISCAT",
+        "STOP-BANG": "STOP-BANG",
+        "SOBA": "SOBA",
+        "RCRI": "RCRI",
+        "Caprini": "Caprini",
+    }
+
+    slices = {
+        "T0": db_funcs.t0_get_result,
+        "T1": db_funcs.t1_get_result,
+        "T2": db_funcs.t2_get_result,
+        "T3": db_funcs.t3_get_result,
+        "T4": db_funcs.t4_get_result,
+        "T5": db_funcs.t5_get_result,
+        "T6": db_funcs.t6_get_result,
+        "T7": db_funcs.t7_get_result,
+        "T8": db_funcs.t8_get_result,
+        "T9": db_funcs.t9_get_result,
+        "T10": db_funcs.t10_get_result,
+        "T11": db_funcs.t11_get_result,
+        "T12": db_funcs.t12_get_result,
+    }
+
+    def _select_all():
+        for k in scales:
+            st.session_state[f"scale_{k}"] = True
+        for k in slices:
+            st.session_state[f"slice_{k}"] = True
+
+    st.checkbox("Выгрузить всё", key="export_all_db", on_change=_select_all)
+
+    st.markdown("#### Шкалы")
+    for key, label in scales.items():
+        st.checkbox(label, key=f"scale_{key}")
+
+    st.markdown("#### Срезы")
+    for key in slices:
+        st.checkbox(key, key=f"slice_{key}")
+
+    if st.button("Сформировать выгрузку", use_container_width=True):
+        selected_scales = [k for k in scales if st.session_state.get(f"scale_{k}")]
+        selected_slices = [k for k in slices if st.session_state.get(f"slice_{k}")]
+
+        if not selected_scales and not selected_slices:
+            st.warning("Выберите хотя бы одну шкалу или срез.")
+            return
+
+        persons = search_persons(limit=100000)
+        rows = []
+        for person in persons:
+            atype = getattr(person, "anesthesia_type", None)
+            row = {
+                "patient_id": person.id,
+                "№ карты": getattr(person, "card_number", ""),
+                "Фамилия": getattr(person, "last_name", ""),
+                "Имя": getattr(person, "first_name", ""),
+                "Отчество": getattr(person, "patronymic", ""),
+                "Дата включения": getattr(person, "inclusion_date", None),
+                "Тип анестезии": atype.value if atype else "",
+                "Возраст (лет)": getattr(person, "age", None),
+                "Рост (см)": getattr(person, "height", None),
+                "Вес (кг)": getattr(person, "weight", None),
+                "Пол": "Ж" if bool(getattr(person, "gender", False)) else "М",
+                "ИМТ": _bmi(getattr(person, "weight", None), getattr(person, "height", None)),
+            }
+
+            if "ELG" in selected_scales:
+                elg = _safe(db_funcs.elg_get_result, person.id, label="El-Ganzouri")
+                score = getattr(elg, "total_score", None)
+                row["ELG: сумма"] = score
+                row["ELG: рекомендация"] = _elg_plan(score)
+
+            if "ARISCAT" in selected_scales:
+                ar = _safe(db_funcs.ar_get_result, person.id, label="ARISCAT")
+                row["ARISCAT: сумма"] = getattr(ar, "total_score", None)
+
+            if "STOP-BANG" in selected_scales:
+                sb = _safe(db_funcs.sb_get_result, person.id, label="STOP-BANG")
+                row["STOP-BANG: сумма"] = getattr(sb, "total_score", None)
+                row["STOP-BANG: риск"] = _stopbang_label(getattr(sb, "risk_level", None))
+
+            if "SOBA" in selected_scales:
+                soba = _safe(db_funcs.get_soba, person.id, label="SOBA")
+                row["SOBA: STOP-BANG сумма (кэш)"] = getattr(soba, "stopbang_score_cached", None)
+                row["SOBA: STOP-BANG риск (кэш)"] = _stopbang_label(getattr(soba, "stopbang_risk_cached", None))
+                row["SOBA: плохая ФН"] = getattr(soba, "poor_functional_status", None)
+                row["SOBA: изменения ЭКГ"] = getattr(soba, "ekg_changes", None)
+                row["SOBA: неконтр. АГ/ИБС"] = getattr(soba, "uncontrolled_htn_ihd", None)
+                row["SOBA: SpO₂<94%"] = getattr(soba, "spo2_room_air_lt_94", None)
+                row["SOBA: PaCO₂>28"] = getattr(soba, "hypercapnia_co2_gt_28", None)
+                row["SOBA: ТГВ/ТЭЛА анамнез"] = getattr(soba, "vte_history", None)
+
+            if "RCRI" in selected_scales:
+                rcri = _safe(db_funcs.rcri_get_result, person.id, label="RCRI")
+                score = getattr(rcri, "total_score", None)
+                row["RCRI: сумма"] = score
+                row["RCRI: риск (частота осложнений)"] = _rcri_risk(score)
+
+            if "Caprini" in selected_scales:
+                cap = _safe(db_funcs.caprini_get_result, person.id, label="Caprini")
+                row["Caprini: сумма"] = getattr(cap, "total_score", None)
+                row["Caprini: риск"] = _caprini_label(getattr(cap, "risk_level", None))
+
+            for slice_key in selected_slices:
+                data = _safe(slices[slice_key], person.id, label=f"срез {slice_key}")
+                if data:
+                    d = data.model_dump()
+                    d.pop("id", None)
+                    d.pop("slices_id", None)
+                    for field, value in d.items():
+                        row[f"{slice_key}: {field}"] = value
+
+            rows.append(row)
+
+        if not rows:
+            st.info("Нет данных для экспорта.")
+            return
+
+        df = pd.DataFrame(rows)
+        st.markdown("### Предпросмотр")
+        st.dataframe(df, width="stretch")
+
+        buf = io.BytesIO()
+        with pd.ExcelWriter(buf) as writer:
+            df.to_excel(writer, index=False, sheet_name="Пациенты")
+
+        st.download_button(
+            "⬇️ Скачать Excel",
+            data=buf.getvalue(),
+            file_name="patients_export.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True,
+        )
+
     create_big_button("Назад", on_click=change_menu_item, kwargs={"item": "patients"}, icon="⬅️")
 
 
