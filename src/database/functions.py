@@ -6,6 +6,7 @@ from database.schemas.lee import LeeRcriRead, LeeRcriInput, LeeRcriUpdate
 from database.schemas.persons import PersonCreate, PersonRead, PersonUpdate
 from database.schemas.soba import SobaRead, SobaCreate, SobaUpdate
 from database.schemas.stopbang import StopBangRead, StopBangInput
+from database.schemas.slice_t0 import SliceT0Input, SliceT0Read
 from database.services.ariscat import AriscatService
 from database.services.caprini import CapriniService
 from database.services.elganzouri import ElGanzouriService
@@ -13,6 +14,7 @@ from database.services.lee import LeeRcriService
 from database.services.persons import PersonsService
 from database.services.soba import SobaService
 from database.services.stopbang import StopBangService
+from database.services.slice_t0 import SliceT0Service
 from database.services.utils import NotFoundError
 
 
@@ -193,4 +195,25 @@ def caprini_clear_result(person_id: int) -> bool:
     with SessionLocal() as session:
         svc = CapriniService(session)
         return svc.clear_result(person_id)
+
+
+def t0_get_result(person_id: int) -> SliceT0Read | None:
+    with SessionLocal() as session:
+        svc = SliceT0Service(session)
+        try:
+            return svc.get(person_id)
+        except NotFoundError:
+            return None
+
+
+def t0_upsert_result(person_id: int, data: SliceT0Input) -> SliceT0Read:
+    with SessionLocal() as session:
+        svc = SliceT0Service(session)
+        return svc.upsert(person_id, data)
+
+
+def t0_clear_result(person_id: int) -> bool:
+    with SessionLocal() as session:
+        svc = SliceT0Service(session)
+        return svc.delete(person_id)
 
