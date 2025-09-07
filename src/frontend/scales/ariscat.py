@@ -109,7 +109,7 @@ def show_ariscat_scale():
 
             emergency = st.checkbox("Экстренная операция", value=bool(defaults["is_emergency"]), key="ar_emerg")
 
-        submitted = st.form_submit_button("💾 Сохранить", use_container_width=True)
+        submitted = st.form_submit_button("💾 Сохранить", width='stretch')
 
     # 4) Сохранение
     if submitted:

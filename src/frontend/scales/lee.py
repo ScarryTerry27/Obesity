@@ -57,7 +57,7 @@ def show_lee_scale():
                 value=bool(getattr(stored, "creatinine_gt_180_umol_l", False)),
             )
 
-        submitted = st.form_submit_button("💾 Сохранить", use_container_width=True)
+        submitted = st.form_submit_button("💾 Сохранить", width='stretch')
 
     if submitted:
         payload = LeeRcriInput(

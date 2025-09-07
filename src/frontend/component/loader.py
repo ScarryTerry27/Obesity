@@ -1,4 +1,3 @@
-import json
 import io
 import pandas as pd
 import streamlit as st
@@ -171,28 +170,9 @@ def export_patient_data():
     df_scales = pd.DataFrame([row])
     df_slices = pd.DataFrame(slice_rows)
     st.markdown("### Предпросмотр шкал")
-    st.dataframe(df_scales, use_container_width=True)
+    st.dataframe(df_scales, width="stretch")
     st.markdown("### Предпросмотр срезов")
-    st.dataframe(df_slices, use_container_width=True)
-
-    csv_buf = io.StringIO()
-    df_scales.to_csv(csv_buf, index=False)
-    st.download_button(
-        "⬇️ Скачать CSV",
-        data=csv_buf.getvalue().encode("utf-8-sig"),
-        file_name=f"patient_{person.id}_export.csv",
-        mime="text/csv",
-        use_container_width=True,
-    )
-
-    json_str = json.dumps(row, ensure_ascii=False, indent=2)
-    st.download_button(
-        "⬇️ Скачать JSON",
-        data=json_str.encode("utf-8"),
-        file_name=f"patient_{person.id}_export.json",
-        mime="application/json",
-        use_container_width=True,
-    )
+    st.dataframe(df_slices, width="stretch")
 
     excel_buf = io.BytesIO()
     with pd.ExcelWriter(excel_buf) as writer:
@@ -204,7 +184,7 @@ def export_patient_data():
         data=excel_buf.getvalue(),
         file_name=f"patient_{person.id}_export.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True,
+        width="stretch",
     )
 
     st.caption(

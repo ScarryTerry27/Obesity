@@ -77,7 +77,7 @@ def show_stopbang_scale():
             neck_circ_cm = st.number_input("Окружность шеи (см)", min_value=10.0, max_value=80.0, value=neck_circ_cm,
                                            step=0.5)
 
-        submitted = st.form_submit_button("💾 Сохранить", use_container_width=True)
+        submitted = st.form_submit_button("💾 Сохранить", width='stretch')
 
     if submitted:
         data = StopBangInput(
