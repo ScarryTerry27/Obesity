@@ -154,32 +154,44 @@ def export_patient_data():
     if cap is not None:
         row["Caprini: риск"] = _caprini_label(cap.risk_level)
 
-    # 4) Составляем данные по срезам
+    # 4) Составляем данные по срезам: перечисляем все поля каждой схемы,
+    # даже если срез не заполнен
+    from database.schemas.slice_t0 import SliceT0Input
+    from database.schemas.slice_t1 import SliceT1Input
+    from database.schemas.slice_t2 import SliceT2Input
+    from database.schemas.slice_t3 import SliceT3Input
+    from database.schemas.slice_t4 import SliceT4Input
+    from database.schemas.slice_t5 import SliceT5Input
+    from database.schemas.slice_t6 import SliceT6Input
+    from database.schemas.slice_t7 import SliceT7Input
+    from database.schemas.slice_t8 import SliceT8Input
+    from database.schemas.slice_t9 import SliceT9Input
+    from database.schemas.slice_t10 import SliceT10Input
+    from database.schemas.slice_t11 import SliceT11Input
+    from database.schemas.slice_t12 import SliceT12Input
 
-    def slice_row(name, data):
-        if data is None:
-            return {"Срез": name}
-        d = data.model_dump()
-        d.pop("id", None)
-        d.pop("slices_id", None)
-        d["Срез"] = name
-        return d
-
-    slice_rows = [
-        slice_row("T0", t0),
-        slice_row("T1", t1),
-        slice_row("T2", t2),
-        slice_row("T3", t3),
-        slice_row("T4", t4),
-        slice_row("T5", t5),
-        slice_row("T6", t6),
-        slice_row("T7", t7),
-        slice_row("T8", t8),
-        slice_row("T9", t9),
-        slice_row("T10", t10),
-        slice_row("T11", t11),
-        slice_row("T12", t12),
+    slice_defs = [
+        ("T0", t0, SliceT0Input),
+        ("T1", t1, SliceT1Input),
+        ("T2", t2, SliceT2Input),
+        ("T3", t3, SliceT3Input),
+        ("T4", t4, SliceT4Input),
+        ("T5", t5, SliceT5Input),
+        ("T6", t6, SliceT6Input),
+        ("T7", t7, SliceT7Input),
+        ("T8", t8, SliceT8Input),
+        ("T9", t9, SliceT9Input),
+        ("T10", t10, SliceT10Input),
+        ("T11", t11, SliceT11Input),
+        ("T12", t12, SliceT12Input),
     ]
+
+    slice_rows = []
+    for name, data, schema in slice_defs:
+        row_slice = {"Срез": name}
+        for field in schema.model_fields.keys():
+            row_slice[field] = getattr(data, field, None) if data is not None else None
+        slice_rows.append(row_slice)
 
     # 5) Покажем и дадим скачать
     df_scales = pd.DataFrame([row])
