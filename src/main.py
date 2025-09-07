@@ -30,6 +30,7 @@ from frontend.t7 import show_t7_slice
 from frontend.t8 import show_t8_slice
 from frontend.t9 import show_t9_slice
 from frontend.t10 import show_t10_slice
+from frontend.t11 import show_t11_slice
 
 
 menu_items = {
@@ -62,6 +63,7 @@ menu_items = {
     "show_t8_slice": show_t8_slice,
     "show_t9_slice": show_t9_slice,
     "show_t10_slice": show_t10_slice,
+    "show_t11_slice": show_t11_slice,
 }
 
 
