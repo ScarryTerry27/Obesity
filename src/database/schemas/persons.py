@@ -5,6 +5,7 @@ from datetime import date
 
 from database.enums.anesthesia import AnesthesiaType
 from database.schemas.person_scales import PersonScalesRead
+from database.schemas.person_slices import PersonSlicesRead
 
 
 # ----- базовые -----
@@ -43,6 +44,7 @@ class PersonRead(PersonBase):
     fio: str
     age: Optional[int] = None
     scales: Optional[PersonScalesRead] = None
+    slices: Optional[PersonSlicesRead] = None
 
     class Config:
         from_attributes = True

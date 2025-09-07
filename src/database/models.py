@@ -35,7 +35,6 @@ from database.enums.elganzouri import (
     Thyromental,
     MouthOpening,
 )
-from database.parameters import PARAMETER_KEYS
 
 Base = declarative_base()
 
@@ -63,9 +62,10 @@ class Person(Base):
         cascade="all, delete-orphan",
     )
 
-    operation_data = relationship(
-        "OperationData",
+    slices = relationship(
+        "PersonSlices",
         back_populates="person",
+        uselist=False,
         cascade="all, delete-orphan",
     )
 
@@ -158,6 +158,313 @@ class PersonScales(Base):
             f"lee_rcri={self.lee_rcri_filled}, "
             f"caprini={self.caprini_filled})>"
         )
+
+
+class PersonSlices(Base):
+    """
+    Таблица со статусами заполнения срезов для пациента.
+    По умолчанию все срезы НЕ заполнены.
+    """
+
+    __tablename__ = "person_slices"
+    __table_args__ = (
+        UniqueConstraint("person_id", name="uq_person_slices_person_id"),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    person_id = Column(
+        Integer, ForeignKey("persons.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    # ЯВНЫЕ статусы
+    t0_filled = Column(Boolean, nullable=False, default=False)
+    t1_filled = Column(Boolean, nullable=False, default=False)
+    t2_filled = Column(Boolean, nullable=False, default=False)
+    t3_filled = Column(Boolean, nullable=False, default=False)
+    t4_filled = Column(Boolean, nullable=False, default=False)
+    t5_filled = Column(Boolean, nullable=False, default=False)
+    t6_filled = Column(Boolean, nullable=False, default=False)
+    t7_filled = Column(Boolean, nullable=False, default=False)
+    t8_filled = Column(Boolean, nullable=False, default=False)
+    t9_filled = Column(Boolean, nullable=False, default=False)
+    t10_filled = Column(Boolean, nullable=False, default=False)
+    t11_filled = Column(Boolean, nullable=False, default=False)
+    t12_filled = Column(Boolean, nullable=False, default=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    person = relationship("Person", back_populates="slices", uselist=False)
+
+    # Связи 1:1 к конкретным таблицам срезов
+    t0 = relationship("SliceT0", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t1 = relationship("SliceT1", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t2 = relationship("SliceT2", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t3 = relationship("SliceT3", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t4 = relationship("SliceT4", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t5 = relationship("SliceT5", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t6 = relationship("SliceT6", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t7 = relationship("SliceT7", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t8 = relationship("SliceT8", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t9 = relationship("SliceT9", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t10 = relationship("SliceT10", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t11 = relationship("SliceT11", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+    t12 = relationship("SliceT12", back_populates="slices", uselist=False, cascade="all, delete-orphan")
+
+    def __repr__(self):
+        flags = ", ".join(
+            f"t{i}={getattr(self, f't{i}_filled')}" for i in range(13)
+        )
+        return f"<PersonSlices(person_id={self.person_id}, {flags})>"
+
+
+class SliceT0(Base):
+    """Placeholder table for slice T0 data."""
+
+    __tablename__ = "slice_t0"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t0_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t0")
+
+
+class SliceT1(Base):
+    """Placeholder table for slice T1 data."""
+
+    __tablename__ = "slice_t1"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t1_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t1")
+
+
+class SliceT2(Base):
+    """Placeholder table for slice T2 data."""
+
+    __tablename__ = "slice_t2"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t2_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t2")
+
+
+class SliceT3(Base):
+    """Placeholder table for slice T3 data."""
+
+    __tablename__ = "slice_t3"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t3_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t3")
+
+
+class SliceT4(Base):
+    """Placeholder table for slice T4 data."""
+
+    __tablename__ = "slice_t4"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t4_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t4")
+
+
+class SliceT5(Base):
+    """Placeholder table for slice T5 data."""
+
+    __tablename__ = "slice_t5"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t5_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t5")
+
+
+class SliceT6(Base):
+    """Placeholder table for slice T6 data."""
+
+    __tablename__ = "slice_t6"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t6_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t6")
+
+
+class SliceT7(Base):
+    """Placeholder table for slice T7 data."""
+
+    __tablename__ = "slice_t7"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t7_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t7")
+
+
+class SliceT8(Base):
+    """Placeholder table for slice T8 data."""
+
+    __tablename__ = "slice_t8"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t8_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t8")
+
+
+class SliceT9(Base):
+    """Placeholder table for slice T9 data."""
+
+    __tablename__ = "slice_t9"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t9_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t9")
+
+
+class SliceT10(Base):
+    """Placeholder table for slice T10 data."""
+
+    __tablename__ = "slice_t10"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t10_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t10")
+
+
+class SliceT11(Base):
+    """Placeholder table for slice T11 data."""
+
+    __tablename__ = "slice_t11"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t11_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t11")
+
+
+class SliceT12(Base):
+    """Placeholder table for slice T12 data."""
+
+    __tablename__ = "slice_t12"
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t12_slices"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    slices_id = Column(
+        Integer, ForeignKey("person_slices.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    slices = relationship("PersonSlices", back_populates="t12")
 
 
 class ElGanzouriResult(Base):
@@ -438,33 +745,3 @@ class CapriniResult(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     scales = relationship("PersonScales", back_populates="caprini")
-
-
-class OperationData(Base):
-    """Показатели для одной точки наблюдения (T0..T12)."""
-
-    __tablename__ = "operation_data"
-    __table_args__ = (
-        UniqueConstraint("person_id", "point", name="uq_person_point"),
-    )
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    person_id = Column(
-        Integer,
-        ForeignKey("persons.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    point = Column(String(3), nullable=False)  # T0..T12
-
-    # dynamically add columns for each параметр
-    for key in PARAMETER_KEYS:
-        locals()[key] = Column(String, nullable=True)
-        locals()[f"{key}_min"] = Column(String, nullable=True)
-        locals()[f"{key}_max"] = Column(String, nullable=True)
-        locals()[f"{key}_unit"] = Column(String, nullable=True)
-
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
-
-    person = relationship("Person", back_populates="operation_data")
