@@ -4,6 +4,8 @@ import pandas as pd
 import streamlit as st
 
 import database.functions as db_funcs
+from frontend.general import create_big_button
+from frontend.utils import change_menu_item
 
 
 # ===== helpers =====
@@ -209,4 +211,12 @@ def export_patient_data():
 
     st.caption(
         "Если какая-то шкала или срез не заполнены, в выгрузке будут пустые значения для их полей."
+    )
+
+    st.markdown("---")
+    create_big_button(
+        "⬅️ Назад",
+        on_click=change_menu_item,
+        kwargs={"item": "diagnosis_patient"},
+        key="back_btn",
     )

@@ -1,3 +1,5 @@
+from datetime import date
+
 from database.db import SessionLocal
 from database.schemas.ariscat import AriscatInput, AriscatRead
 from database.schemas.caprini import CapriniRead, CapriniInput
@@ -173,10 +175,29 @@ def update_person_fields(person_id: int, **fields):
         return svc.update_person(person_id, PersonUpdate(**fields))
 
 
-def search_persons(query: str, limit: int = 50, offset: int = 0):
+def search_persons(
+    *,
+    last_name: str | None = None,
+    first_name: str | None = None,
+    patronymic: str | None = None,
+    age: int | None = None,
+    card_number: str | None = None,
+    inclusion_date: date | None = None,
+    limit: int = 50,
+    offset: int = 0,
+):
     with SessionLocal() as session:
         svc = PersonsService(session)
-        return svc.search_persons(query, limit=limit, offset=offset)
+        return svc.search_persons(
+            last_name=last_name,
+            first_name=first_name,
+            patronymic=patronymic,
+            age=age,
+            card_number=card_number,
+            inclusion_date=inclusion_date,
+            limit=limit,
+            offset=offset,
+        )
 
 
 def rcri_get_result(person_id: int) -> LeeRcriRead | None:

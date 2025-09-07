@@ -1,6 +1,7 @@
+from datetime import date
 from typing import Sequence
 
-from sqlalchemy import select, delete, or_
+from sqlalchemy import select, delete, and_
 from sqlalchemy.orm import Session
 
 from database.models import Person
@@ -38,22 +39,38 @@ class PersonsRepository:
         res = self.session.execute(stmt)
         return res.rowcount or 0
 
-    def search_by_fio(self, query: str, limit: int = 50, offset: int = 0) -> Sequence[Person]:
-        """Ищет по подстроке в любом из полей ФИО (регистр не важен)."""
-        q = (query or "").strip()
-        if not q:
-            return []
+    def search(
+        self,
+        last_name: str | None = None,
+        first_name: str | None = None,
+        patronymic: str | None = None,
+        age: int | None = None,
+        card_number: str | None = None,
+        inclusion_date: date | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> Sequence[Person]:
+        """Поиск по нескольким полям."""
+        stmt = select(Person)
+        conditions = []
+        if last_name:
+            conditions.append(Person.last_name.ilike(f"%{last_name}%"))
+        if first_name:
+            conditions.append(Person.first_name.ilike(f"%{first_name}%"))
+        if patronymic:
+            conditions.append(Person.patronymic.ilike(f"%{patronymic}%"))
+        if card_number:
+            conditions.append(Person.card_number.ilike(f"%{card_number}%"))
+        if inclusion_date:
+            conditions.append(Person.inclusion_date == inclusion_date)
+        if conditions:
+            stmt = stmt.where(and_(*conditions))
         stmt = (
-            select(Person)
-            .where(
-                or_(
-                    Person.last_name.ilike(f"%{q}%"),
-                    Person.first_name.ilike(f"%{q}%"),
-                    Person.patronymic.ilike(f"%{q}%"),
-                )
-            )
-            .order_by(Person.last_name.asc(), Person.first_name.asc())
+            stmt.order_by(Person.last_name.asc(), Person.first_name.asc())
             .offset(offset)
             .limit(limit)
         )
-        return self.session.execute(stmt).scalars().all()
+        persons = self.session.execute(stmt).scalars().all()
+        if age is not None:
+            persons = [p for p in persons if p.age == age]
+        return persons
