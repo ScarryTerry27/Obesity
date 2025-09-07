@@ -183,6 +183,22 @@ def preoperative_exam():
     st.title(f"👁️ Предоперационный осмотр пациента {person.fio}")
 
     scales_status = getattr(person, "scales", None)
+    slices_status = getattr(person, "slices", None)
+
+    t0_filled = bool(getattr(slices_status, "t0_filled", False)) if slices_status else False
+    col_t0_1, col_t0_2 = st.columns([2, 1])
+    with col_t0_1:
+        st.markdown(
+            f"**Срез t0**  \nСтатус: {'✅ Заполнено' if t0_filled else '❌ Не заполнено'}"
+        )
+    with col_t0_2:
+        create_big_button(
+            "Перейти",
+            on_click=change_menu_item,
+            kwargs={"item": "show_t0_slice"},
+            icon="📝",
+            key="t0_btn",
+        )
 
     # ВАЖНО: разделили STOP-BANG и SOBA на отдельные строки
     scales = [
