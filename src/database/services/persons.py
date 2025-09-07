@@ -1,4 +1,5 @@
 from typing import List
+from datetime import date
 
 from sqlalchemy.orm import Session
 from database.models import Person
@@ -59,6 +60,26 @@ class PersonsService:
             raise NotFoundError(f"Person #{person_id} not found")
         return True
 
-    def search_persons(self, query: str, limit: int = 50, offset: int = 0) -> List[PersonRead]:
-        persons = self.repo.search_by_fio(query, limit=limit, offset=offset)
+    def search_persons(
+        self,
+        *,
+        last_name: str | None = None,
+        first_name: str | None = None,
+        patronymic: str | None = None,
+        age: int | None = None,
+        card_number: str | None = None,
+        inclusion_date: date | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[PersonRead]:
+        persons = self.repo.search(
+            last_name=last_name,
+            first_name=first_name,
+            patronymic=patronymic,
+            age=age,
+            card_number=card_number,
+            inclusion_date=inclusion_date,
+            limit=limit,
+            offset=offset,
+        )
         return [PersonRead.model_validate(p) for p in persons]

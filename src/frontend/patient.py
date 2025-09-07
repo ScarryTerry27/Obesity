@@ -107,27 +107,44 @@ def add_patient():
 def find_patient():
     st.title("🔍 Поиск пациента")
 
-    # Форма ввода запроса
     with st.form("find_patient_form", clear_on_submit=False):
-        q = st.text_input("Фамилия (или часть ФИО)", key="patients_find_q",
-                          placeholder="Например: Иванов")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            last_name = st.text_input("Фамилия", key="patients_find_last_name")
+        with col2:
+            first_name = st.text_input("Имя", key="patients_find_first_name")
+        with col3:
+            patronymic = st.text_input("Отчество", key="patients_find_patronymic")
+
+        col4, col5, col6 = st.columns(3)
+        with col4:
+            age_str = st.text_input("Возраст", key="patients_find_age")
+        with col5:
+            card_number = st.text_input("Номер истории", key="patients_find_card")
+        with col6:
+            inclusion_date = st.date_input("Дата добавления", value=None, key="patients_find_date")
+
         submitted = st.form_submit_button("Искать", width='stretch')
 
-    # При сабмите — фиксируем запрос и делаем rerun
     if submitted:
-        q_fixed = (q or "").strip()
-        if not q_fixed:
-            st.warning("Введите хотя бы 1 символ для поиска.")
-        else:
-            st.session_state["patients_find_q_committed"] = q_fixed
-            st.rerun()
+        filters = {
+            "last_name": (last_name or "").strip() or None,
+            "first_name": (first_name or "").strip() or None,
+            "patronymic": (patronymic or "").strip() or None,
+            "card_number": (card_number or "").strip() or None,
+            "inclusion_date": inclusion_date,
+        }
+        try:
+            filters["age"] = int(age_str) if age_str.strip() else None
+        except ValueError:
+            st.warning("Возраст должен быть числом")
+            filters["age"] = None
+        st.session_state["patients_find_filters"] = filters
+        st.rerun()
 
-    # Берём «зафиксированный» запрос
-    q_committed = st.session_state.get("patients_find_q_committed", "").strip()
-
-    # Рендерим результаты независимо от submitted
-    if q_committed:
-        results = search_persons(q_committed, limit=100)
+    filters = st.session_state.get("patients_find_filters")
+    if filters:
+        results = search_persons(limit=100, **filters)
         if not results:
             st.info("Ничего не найдено.")
         else:

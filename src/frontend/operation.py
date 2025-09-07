@@ -176,7 +176,7 @@ def show_postoperative():
     col5, col6 = st.columns([2, 1])
     with col5:
         st.markdown(
-            f"**Срез t11 - конец 1-х суток после операции**  \nСтатус: {'✅ Заполнено' if t11_filled else '❌ Не заполнено'}"
+            f"**Срез t11 - конец 2-х суток после операции**  \nСтатус: {'✅ Заполнено' if t11_filled else '❌ Не заполнено'}"
         )
     with col6:
         create_big_button(
