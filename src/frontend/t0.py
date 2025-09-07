@@ -9,8 +9,6 @@ from frontend.utils import change_menu_item
 FIELD_DEFS = [
     ("date", "Дата", "", "date"),
     ("time", "Время", "", "time"),
-    ("age", "Возраст", "лет", "float"),
-    ("bmi", "ИМТ", "кг/м²", "float"),
     ("rr_spont", "ЧД спонтан", "вдох/мин", "float"),
     ("fev1", "ОФВ1", "л", "float"),
     ("fvc", "ФЖЕЛ", "л", "float"),
@@ -60,7 +58,7 @@ FIELD_DEFS = [
     ("t_intense_pain", "t интенсив. боли", "ч", "float"),
     ("t_restore_frc", "t восс. ФОЕ", "ч", "float"),
     ("t_restore_gfr", "t восс. СКФ", "ч", "float"),
-    ("t_in_ward", "t в АРО", "ч", "float"),
+    ("t_in_ward", "t в стационаре", "ч", "float"),
     ("qor15", "QoR-15", "баллы", "float"),
     ("satisfied", "Удовлетворен.", "", "bool"),
 ]
@@ -73,33 +71,23 @@ def show_t0_slice():
     existing = t0_get_result(person.id)
     defaults = existing.model_dump() if existing else {}
 
-    bmi_val = None
-    try:
-        bmi_val = person.weight / ((person.height / 100) ** 2)
-    except Exception:
-        pass
-
     with st.form("t0_form"):
         values = {}
         for i in range(0, len(FIELD_DEFS), 4):
             cols = st.columns(4)
             for col, (name, label, placeholder, ftype) in zip(cols, FIELD_DEFS[i:i+4]):
                 default = defaults.get(name)
-                if name == "age" and default is None:
-                    default = getattr(person, "age", None)
-                if name == "bmi" and default is None:
-                    default = bmi_val
                 with col:
                     if ftype == "date":
-                        val = st.date_input(label, value=default or date.today())
+                        val = st.date_input(label, value=default or date.today(), key=name)
                     elif ftype == "time":
-                        val = st.time_input(label, value=default or datetime.now().time())
+                        val = st.time_input(label, value=default or datetime.now().time(), key=name)
                     elif ftype == "bool":
-                        val = st.checkbox(label, value=bool(default))
+                        val = st.checkbox(label, value=bool(default), key=name)
                     elif ftype == "str":
-                        val = st.text_input(label, value=default or "", placeholder=placeholder)
+                        val = st.text_input(label, value=default or "", placeholder=placeholder, key=name)
                     else:
-                        val_str = st.text_input(label, value="" if default is None else str(default), placeholder=placeholder)
+                        val_str = st.text_input(label, value="" if default is None else str(default), placeholder=placeholder, key=name)
                         if val_str == "":
                             val = None
                         else:

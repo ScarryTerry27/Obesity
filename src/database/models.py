@@ -234,8 +234,6 @@ class SliceT0(Base):
 
     date = Column(Date, nullable=True)
     time = Column(Time, nullable=True)
-    age = Column(Integer, nullable=True)
-    bmi = Column(Float, nullable=True)
     rr_spont = Column(Float, nullable=True)
     fev1 = Column(Float, nullable=True)
     fvc = Column(Float, nullable=True)
