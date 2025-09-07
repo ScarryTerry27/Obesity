@@ -75,7 +75,7 @@ def show_el_ganzouri_form():
             can_protrude = st.checkbox("Выдвижение нижней челюсти возможно", value=bool(defaults["can_protrude"]))
             diff_hx = st.selectbox("Трудная интубация в анамнезе", ["Нет", "Недостоверно", "Определенно"], index=0)
 
-        submitted = st.form_submit_button("💾 Сохранить", use_container_width=True)
+        submitted = st.form_submit_button("💾 Сохранить", width='stretch')
 
     # 3) Сохранение
     if submitted:

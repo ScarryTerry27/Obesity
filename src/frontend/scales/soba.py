@@ -88,7 +88,7 @@ def show_soba_scale():
                 value=bool(getattr(stored, "vte_history", False)),
             )
 
-        submitted = st.form_submit_button("💾 Сохранить", use_container_width=True)
+        submitted = st.form_submit_button("💾 Сохранить", width='stretch')
 
     if submitted:
         # 1) обновим карточку пациента при изменениях
