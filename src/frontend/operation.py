@@ -143,6 +143,7 @@ def show_postoperative():
     slices_status = getattr(person, "slices", None)
     t9_filled = bool(getattr(slices_status, "t9_filled", False)) if slices_status else False
     t10_filled = bool(getattr(slices_status, "t10_filled", False)) if slices_status else False
+    t11_filled = bool(getattr(slices_status, "t11_filled", False)) if slices_status else False
 
     col1, col2 = st.columns([2, 1])
     with col1:
@@ -171,6 +172,20 @@ def show_postoperative():
             icon="📝",
             key="t10_btn",
         )
+    col5, col6 = st.columns([2, 1])
+    with col5:
+        st.markdown(
+            f"**Срез t11 - конец 1-х суток после операции**  \nСтатус: {'✅ Заполнено' if t11_filled else '❌ Не заполнено'}"
+        )
+    with col6:
+        create_big_button(
+            "Перейти",
+            on_click=change_menu_item,
+            kwargs={"item": "show_t11_slice"},
+            icon="📝",
+            key="t11_btn",
+        )
+
 
     _back()
 

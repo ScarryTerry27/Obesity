@@ -35,6 +35,8 @@ from database.schemas.slice_t9 import SliceT9Input, SliceT9Read
 from database.services.slice_t9 import SliceT9Service
 from database.schemas.slice_t10 import SliceT10Input, SliceT10Read
 from database.services.slice_t10 import SliceT10Service
+from database.schemas.slice_t11 import SliceT11Input, SliceT11Read
+from database.services.slice_t11 import SliceT11Service
 from database.services.utils import NotFoundError
 
 
@@ -447,3 +449,23 @@ def t10_clear_result(person_id: int) -> bool:
         svc = SliceT10Service(session)
         return svc.delete(person_id)
 
+
+def t11_get_result(person_id: int) -> SliceT11Read | None:
+    with SessionLocal() as session:
+        svc = SliceT11Service(session)
+        try:
+            return svc.get(person_id)
+        except NotFoundError:
+            return None
+
+
+def t11_upsert_result(person_id: int, data: SliceT11Input) -> SliceT11Read:
+    with SessionLocal() as session:
+        svc = SliceT11Service(session)
+        return svc.upsert(person_id, data)
+
+
+def t11_clear_result(person_id: int) -> bool:
+    with SessionLocal() as session:
+        svc = SliceT11Service(session)
+        return svc.delete(person_id)
