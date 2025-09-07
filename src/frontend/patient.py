@@ -277,13 +277,16 @@ def export_patients():
 
     st.checkbox("Выгрузить всё", key="export_all_db", on_change=_select_all)
 
-    st.markdown("#### Шкалы")
-    for key, label in scales.items():
-        st.checkbox(label, key=f"scale_{key}")
+    col_scales, col_slices = st.columns(2)
+    with col_scales:
+        st.markdown("#### Шкалы")
+        for key, label in scales.items():
+            st.checkbox(label, key=f"scale_{key}")
 
-    st.markdown("#### Срезы")
-    for key in slices:
-        st.checkbox(key, key=f"slice_{key}")
+    with col_slices:
+        st.markdown("#### Срезы")
+        for key in slices:
+            st.checkbox(key, key=f"slice_{key}")
 
     if st.button("Сформировать выгрузку", use_container_width=True):
         selected_scales = [k for k in scales if st.session_state.get(f"scale_{k}")]
@@ -365,6 +368,7 @@ def export_patients():
             return
 
         df = pd.DataFrame(rows)
+        df.replace({True: 1, False: 0}, inplace=True)
         st.markdown("### Предпросмотр")
         st.dataframe(df, width="stretch")
 

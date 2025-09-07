@@ -171,6 +171,8 @@ def export_patient_data():
     # 5) Покажем и дадим скачать
     df_scales = pd.DataFrame([row])
     df_slices = pd.DataFrame(slice_rows)
+    df_scales.replace({True: 1, False: 0}, inplace=True)
+    df_slices.replace({True: 1, False: 0}, inplace=True)
     st.markdown("### Предпросмотр шкал")
     st.dataframe(df_scales, width="stretch")
     st.markdown("### Предпросмотр срезов")
