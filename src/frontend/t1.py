@@ -3,7 +3,7 @@ from datetime import date, datetime
 import streamlit as st
 
 from database.schemas.slice_t1 import SliceT1Input
-from database.functions import t1_get_result, t1_upsert_result
+from database.functions import get_person, t1_get_result, t1_upsert_result
 from frontend.utils import change_menu_item
 
 FIELD_DEFS = [
@@ -102,6 +102,7 @@ def show_t1_slice():
         submitted = st.form_submit_button("Сохранить", use_container_width=True)
     if submitted:
         t1_upsert_result(person.id, SliceT1Input(**values))
+        st.session_state["current_patient_info"] = get_person(person.id)
         st.success("Данные сохранены")
         change_menu_item(item="postoperative_period")
         st.rerun()

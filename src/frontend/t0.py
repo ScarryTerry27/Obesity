@@ -3,7 +3,7 @@ from datetime import date, datetime
 import streamlit as st
 
 from database.schemas.slice_t0 import SliceT0Input
-from database.functions import t0_get_result, t0_upsert_result
+from database.functions import get_person, t0_get_result, t0_upsert_result
 from frontend.utils import change_menu_item
 
 FIELD_DEFS = [
@@ -99,6 +99,7 @@ def show_t0_slice():
         submitted = st.form_submit_button("Сохранить", use_container_width=True)
     if submitted:
         t0_upsert_result(person.id, SliceT0Input(**values))
+        st.session_state["current_patient_info"] = get_person(person.id)
         st.success("Данные сохранены")
         change_menu_item(item="preoperative_exam")
         st.rerun()
