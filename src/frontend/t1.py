@@ -2,42 +2,45 @@ from datetime import date, datetime
 
 import streamlit as st
 
-from database.schemas.slice_t0 import SliceT0Input
-from database.functions import t0_get_result, t0_upsert_result, get_person
+from database.schemas.slice_t1 import SliceT1Input
+from database.functions import t1_get_result, t1_upsert_result, get_person
 from frontend.utils import change_menu_item
 
 FIELD_DEFS = [
     ("date", "Дата", "", "date"),
     ("time", "Время", "", "time"),
     ("rr_spont", "ЧД спонтан", "вдох/мин", "float"),
-    ("fev1", "ОФВ1", "л", "float"),
-    ("fvc", "ФЖЕЛ", "л", "float"),
-    ("frc", "ФОЕ", "л", "float"),
-    ("tlc", "ОЕЛ", "л", "float"),
-    ("rv", "ООЛ", "л", "float"),
-    ("fev1_fvc", "ОФВ1/ФЖЕЛ", "%", "float"),
-    ("pef", "ПОС", "л/с", "float"),
-    ("mef25", "МОС25", "л/с", "float"),
-    ("mef50", "МОС50", "л/с", "float"),
-    ("mef75", "МОС75", "л/с", "float"),
-    ("fef25_75", "СОС 25-75", "л/с", "float"),
     ("heart_rate", "ЧСС", "уд/мин", "float"),
+    ("heart_rate_min", "ЧСС мин", "уд/мин", "float"),
+    ("heart_rate_max", "ЧСС макс", "уд/мин", "float"),
     ("sbp", "АДсис", "мм рт.ст.", "float"),
+    ("sbp_min", "Адсис мин", "мм рт.ст.", "float"),
+    ("sbp_max", "Адсис макс", "мм рт.ст.", "float"),
     ("dbp", "АДдиас", "мм рт.ст.", "float"),
+    ("dbp_min", "Аддиас мин", "мм рт.ст.", "float"),
+    ("dbp_max", "Аддиас макс", "мм рт.ст.", "float"),
     ("map", "АДср", "мм рт.ст.", "float"),
+    ("map_min", "Адср мин", "мм рт.ст.", "float"),
+    ("map_max", "Адср макс", "мм рт.ст.", "float"),
     ("spo2", "SpO2", "%", "float"),
     ("urine_ml_per_h", "Диурез мл/ч", "мл/ч", "float"),
     ("hemoglobin", "Гемоглобин", "г/л", "float"),
-    ("neutrophils", "Нейтрофилы", "%", "float"),
-    ("lymphocytes", "Лимфоциты", "%", "float"),
-    ("hematocrit", "Гематокрит", "%", "float"),
-    ("leukocytes", "Лейкоциты", "10^9/л", "float"),
-    ("bands", "п/я", "%", "float"),
-    ("albumin", "Альбумин", "г/л", "float"),
-    ("creatinine", "Креатинин", "мкмоль/л", "float"),
-    ("gfr", "СКФ", "мл/мин", "float"),
-    ("nlr", "NLR", "", "float"),
-    ("glucose", "Глюкоза крови", "ммоль/л", "float"),
+    ("stroke_volume", "УО", "мл", "float"),
+    ("cardiac_index", "СИ", "л/мин/м²", "float"),
+    ("svri", "ИОПСС", "дин·с·см⁻⁵·м²", "float"),
+    ("cao", "СаО", "мл/дл", "float"),
+    ("do2", "DO2", "мл/мин", "float"),
+    ("vbd", "ВБД", "", "float"),
+    ("fio2", "FiO2", "%", "float"),
+    ("uzl_score", "Балл УЗЛ", "баллы", "float"),
+    ("ph_arterial", "pH артер.", "", "float"),
+    ("be_arterial", "BE артер.", "ммоль/л", "float"),
+    ("hco3_arterial", "HCO3 артер.", "ммоль/л", "float"),
+    ("lactate_arterial", "Лактат артер.", "ммоль/л", "float"),
+    ("pao2", "РаО2", "мм рт.ст.", "float"),
+    ("pao2_fio2", "РаО2/FiO2", "", "float"),
+    ("paco2", "РаСО2", "мм рт.ст.", "float"),
+    ("sao2", "SаO2", "%", "float"),
     ("polo", "ПОЛО", "", "bool"),
     ("phrenic_syndrome", "Френикус синд.", "", "bool"),
     ("phrenic_crsh", "Френикус/ ЦРШ", "", "bool"),
@@ -64,14 +67,15 @@ FIELD_DEFS = [
 ]
 
 
-def show_t0_slice():
+def show_t1_slice():
     person = st.session_state["current_patient_info"]
-    st.title(f"t0 показатели пациента {person.fio}")
+    st.title(f"t1 показатели пациента {person.fio}")
+    st.caption("после индукции")
 
-    existing = t0_get_result(person.id)
+    existing = t1_get_result(person.id)
     defaults = existing.model_dump() if existing else {}
 
-    with st.form("t0_form"):
+    with st.form("t1_form"):
         values = {}
         for i in range(0, len(FIELD_DEFS), 4):
             cols = st.columns(4)
@@ -98,9 +102,9 @@ def show_t0_slice():
                     values[name] = val
         submitted = st.form_submit_button("Сохранить", use_container_width=True)
     if submitted:
-        t0_upsert_result(person.id, SliceT0Input(**values))
+        t1_upsert_result(person.id, SliceT1Input(**values))
         st.session_state["current_patient_info"] = get_person(person.id)
         st.success("Данные сохранены")
-        change_menu_item(item="preoperative_exam")
+        change_menu_item(item="operation")
         st.rerun()
-    st.button("⬅️ Назад", on_click=change_menu_item, kwargs={"item": "preoperative_exam"})
+    st.button("⬅️ Назад", on_click=change_menu_item, kwargs={"item": "operation"})

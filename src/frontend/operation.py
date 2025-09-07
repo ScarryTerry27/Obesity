@@ -12,7 +12,23 @@ def show_operation():
     st.title(f"🧪 Операция пациента {person.fio}")
 
     slices_status = getattr(person, "slices", None)
+    t1_filled = bool(getattr(slices_status, "t1_filled", False)) if slices_status else False
     t2_filled = bool(getattr(slices_status, "t2_filled", False)) if slices_status else False
+
+    col_t1_1, col_t1_2 = st.columns([2, 1])
+    with col_t1_1:
+        st.markdown(
+            f"**Срез t1 - после индукции**  \nСтатус: {'✅ Заполнено' if t1_filled else '❌ Не заполнено'}"
+        )
+    with col_t1_2:
+        create_big_button(
+            "Перейти",
+            on_click=change_menu_item,
+            kwargs={"item": "show_t1_slice"},
+            icon="📝",
+            key="t1_btn",
+        )
+
     col_t2_1, col_t2_2 = st.columns([2, 1])
     with col_t2_1:
         st.markdown(
