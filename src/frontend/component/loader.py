@@ -110,67 +110,94 @@ def export_patient_data():
         "Вес (кг)": g(person, "weight", None),
         "Пол": ("Ж" if bool(getattr(person, "gender", False)) else "М"),
         "ИМТ": _bmi(g(person, "weight", None), g(person, "height", None)),
-
-        # El-Ganzouri
-        "ELG: сумма": g(elg, "total_score", None),
-        "ELG: рекомендация": _elg_plan(g(elg, "total_score", None)),
-
-        # ARISCAT
-        "ARISCAT: сумма": g(ar, "total_score", None),
-
-        # STOP-BANG
-        "STOP-BANG: сумма": g(sb, "total_score", None),
-        "STOP-BANG: риск": _stopbang_label(g(sb, "risk_level", None)),
-
-        # SOBA
-        "SOBA: STOP-BANG сумма (кэш)": g(soba, "stopbang_score_cached", None),
-        "SOBA: STOP-BANG риск (кэш)": _stopbang_label(g(soba, "stopbang_risk_cached", None)),
-        "SOBA: плохая ФН": g(soba, "poor_functional_status", None),
-        "SOBA: изменения ЭКГ": g(soba, "ekg_changes", None),
-        "SOBA: неконтр. АГ/ИБС": g(soba, "uncontrolled_htn_ihd", None),
-        "SOBA: SpO₂<94%": g(soba, "spo2_room_air_lt_94", None),
-        "SOBA: PaCO₂>28": g(soba, "hypercapnia_co2_gt_28", None),
-        "SOBA: ТГВ/ТЭЛА анамнез": g(soba, "vte_history", None),
-
-        # Lee RCRI
-        "RCRI: сумма": g(rcri, "total_score", None),
-        "RCRI: риск (частота осложнений)": _rcri_risk(g(rcri, "total_score", None)),
-
-        # Caprini
-        "Caprini: сумма": g(cap, "total_score", None),
-        "Caprini: риск": _caprini_label(g(cap, "risk_level", None)),
     }
 
-    # 4) Составляем данные по срезам
+    def add_scale(prefix, obj):
+        if obj is None:
+            return
+        data = obj.model_dump()
+        data.pop("id", None)
+        data.pop("scales_id", None)
+        score = data.pop("total_score", None)
+        if score is not None:
+            row[f"{prefix}: сумма"] = score
+        for field, value in data.items():
+            row[f"{prefix}: {field}"] = value
 
-    def slice_row(name, data):
-        if not data:
-            return {"slice": name}
-        d = data.model_dump()
-        d.pop("id", None)
-        d.pop("slices_id", None)
-        d["slice"] = name
-        return d
+    # El-Ganzouri
+    add_scale("ELG", elg)
+    if elg is not None:
+        row["ELG: рекомендация"] = _elg_plan(elg.total_score)
 
-    slice_rows = [
-        slice_row("T0", t0),
-        slice_row("T1", t1),
-        slice_row("T2", t2),
-        slice_row("T3", t3),
-        slice_row("T4", t4),
-        slice_row("T5", t5),
-        slice_row("T6", t6),
-        slice_row("T7", t7),
-        slice_row("T8", t8),
-        slice_row("T9", t9),
-        slice_row("T10", t10),
-        slice_row("T11", t11),
-        slice_row("T12", t12),
+    # ARISCAT
+    add_scale("ARISCAT", ar)
+
+    # STOP-BANG
+    add_scale("STOP-BANG", sb)
+    if sb is not None:
+        row["STOP-BANG: риск"] = _stopbang_label(sb.risk_level)
+
+    # SOBA
+    add_scale("SOBA", soba)
+    if soba is not None:
+        row["SOBA: STOP-BANG риск (кэш)"] = _stopbang_label(
+            getattr(soba, "stopbang_risk_cached", None)
+        )
+
+    # Lee RCRI
+    add_scale("RCRI", rcri)
+    if rcri is not None:
+        row["RCRI: риск (частота осложнений)"] = _rcri_risk(rcri.total_score)
+
+    # Caprini
+    add_scale("Caprini", cap)
+    if cap is not None:
+        row["Caprini: риск"] = _caprini_label(cap.risk_level)
+
+    # 4) Составляем данные по срезам: перечисляем все поля каждой схемы,
+    # даже если срез не заполнен
+    from database.schemas.slice_t0 import SliceT0Input
+    from database.schemas.slice_t1 import SliceT1Input
+    from database.schemas.slice_t2 import SliceT2Input
+    from database.schemas.slice_t3 import SliceT3Input
+    from database.schemas.slice_t4 import SliceT4Input
+    from database.schemas.slice_t5 import SliceT5Input
+    from database.schemas.slice_t6 import SliceT6Input
+    from database.schemas.slice_t7 import SliceT7Input
+    from database.schemas.slice_t8 import SliceT8Input
+    from database.schemas.slice_t9 import SliceT9Input
+    from database.schemas.slice_t10 import SliceT10Input
+    from database.schemas.slice_t11 import SliceT11Input
+    from database.schemas.slice_t12 import SliceT12Input
+
+    slice_defs = [
+        ("T0", t0, SliceT0Input),
+        ("T1", t1, SliceT1Input),
+        ("T2", t2, SliceT2Input),
+        ("T3", t3, SliceT3Input),
+        ("T4", t4, SliceT4Input),
+        ("T5", t5, SliceT5Input),
+        ("T6", t6, SliceT6Input),
+        ("T7", t7, SliceT7Input),
+        ("T8", t8, SliceT8Input),
+        ("T9", t9, SliceT9Input),
+        ("T10", t10, SliceT10Input),
+        ("T11", t11, SliceT11Input),
+        ("T12", t12, SliceT12Input),
     ]
+
+    slice_rows = []
+    for name, data, schema in slice_defs:
+        row_slice = {"Срез": name}
+        for field in schema.model_fields.keys():
+            row_slice[field] = getattr(data, field, None) if data is not None else None
+        slice_rows.append(row_slice)
 
     # 5) Покажем и дадим скачать
     df_scales = pd.DataFrame([row])
     df_slices = pd.DataFrame(slice_rows)
+    df_scales.replace({True: 1, False: 0}, inplace=True)
+    df_slices.replace({True: 1, False: 0}, inplace=True)
     st.markdown("### Предпросмотр шкал")
     st.dataframe(df_scales, width="stretch")
     st.markdown("### Предпросмотр срезов")
