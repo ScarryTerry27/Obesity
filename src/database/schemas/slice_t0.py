@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from datetime import date, time
+# Aliased datetime imports to avoid name collisions with field names
+from datetime import date as Date, time as Time
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
 
 class SliceT0Input(BaseModel):
-    date: Optional[date] = None
-    time: Optional[time] = None
+    date: Optional[Date] = None
+    time: Optional[Time] = None
     rr_spont: Optional[float] = None
     fev1: Optional[float] = None
     fvc: Optional[float] = None
