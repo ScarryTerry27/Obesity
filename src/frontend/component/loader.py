@@ -1,17 +1,8 @@
-import json
 import io
 import pandas as pd
 import streamlit as st
 
-from database.functions import (
-    get_person,
-    elg_get_result,
-    ar_get_result,
-    sb_get_result,
-    get_soba,
-    rcri_get_result,
-    caprini_get_result,
-)
+import database.functions as db_funcs
 
 
 # ===== helpers =====
@@ -70,18 +61,33 @@ def export_patient_data():
     st.title("📤 Выгрузка данных пациента")
 
     # 1) Берём «свежего» пациента
-    person = _safe(get_person, person_stub.id, label="карточки пациента")
+    person = _safe(db_funcs.get_person, person_stub.id, label="карточки пациента")
     if not person:
         st.error("Не удалось загрузить карточку пациента.")
         return
 
     # 2) Подтягиваем все шкалы (каждый вызов безопасный)
-    elg = _safe(elg_get_result, person.id, label="El-Ganzouri")  # -> ElGanzouriRead | None
-    ar = _safe(ar_get_result, person.id, label="ARISCAT")  # -> AriscatRead | None
-    sb = _safe(sb_get_result, person.id, label="STOP-BANG")  # -> StopBangRead | None
-    soba = _safe(get_soba, person.id, label="SOBA")  # -> SobaRead | None
-    rcri = _safe(rcri_get_result, person.id, label="RCRI")  # -> LeeRcriRead | None
-    cap = _safe(caprini_get_result, person.id, label="Caprini")  # -> CapriniRead | None
+    elg = _safe(db_funcs.elg_get_result, person.id, label="El-Ganzouri")  # -> ElGanzouriRead | None
+    ar = _safe(db_funcs.ar_get_result, person.id, label="ARISCAT")  # -> AriscatRead | None
+    sb = _safe(db_funcs.sb_get_result, person.id, label="STOP-BANG")  # -> StopBangRead | None
+    soba = _safe(db_funcs.get_soba, person.id, label="SOBA")  # -> SobaRead | None
+    rcri = _safe(db_funcs.rcri_get_result, person.id, label="RCRI")  # -> LeeRcriRead | None
+    cap = _safe(db_funcs.caprini_get_result, person.id, label="Caprini")  # -> CapriniRead | None
+
+    # 2b) Подтягиваем все срезы
+    t0 = _safe(db_funcs.t0_get_result, person.id, label="срез T0")
+    t1 = _safe(db_funcs.t1_get_result, person.id, label="срез T1")
+    t2 = _safe(db_funcs.t2_get_result, person.id, label="срез T2")
+    t3 = _safe(db_funcs.t3_get_result, person.id, label="срез T3")
+    t4 = _safe(db_funcs.t4_get_result, person.id, label="срез T4")
+    t5 = _safe(db_funcs.t5_get_result, person.id, label="срез T5")
+    t6 = _safe(db_funcs.t6_get_result, person.id, label="срез T6")
+    t7 = _safe(db_funcs.t7_get_result, person.id, label="срез T7")
+    t8 = _safe(db_funcs.t8_get_result, person.id, label="срез T8")
+    t9 = _safe(db_funcs.t9_get_result, person.id, label="срез T9")
+    t10 = _safe(db_funcs.t10_get_result, person.id, label="срез T10")
+    t11 = _safe(db_funcs.t11_get_result, person.id, label="срез T11")
+    t12 = _safe(db_funcs.t12_get_result, person.id, label="срез T12")
 
     # 3) Собираем одну строку с максимумом защит
     def g(obj, name, default=None):
@@ -133,28 +139,54 @@ def export_patient_data():
         "Caprini: риск": _caprini_label(g(cap, "risk_level", None)),
     }
 
-    # 4) Покажем и дадим скачать
-    df = pd.DataFrame([row])
-    st.markdown("### Предпросмотр")
-    st.dataframe(df, use_container_width=True)
+    # 4) Составляем данные по срезам
 
-    csv_buf = io.StringIO()
-    df.to_csv(csv_buf, index=False)
+    def slice_row(name, data):
+        if not data:
+            return {"slice": name}
+        d = data.model_dump()
+        d.pop("id", None)
+        d.pop("slices_id", None)
+        d["slice"] = name
+        return d
+
+    slice_rows = [
+        slice_row("T0", t0),
+        slice_row("T1", t1),
+        slice_row("T2", t2),
+        slice_row("T3", t3),
+        slice_row("T4", t4),
+        slice_row("T5", t5),
+        slice_row("T6", t6),
+        slice_row("T7", t7),
+        slice_row("T8", t8),
+        slice_row("T9", t9),
+        slice_row("T10", t10),
+        slice_row("T11", t11),
+        slice_row("T12", t12),
+    ]
+
+    # 5) Покажем и дадим скачать
+    df_scales = pd.DataFrame([row])
+    df_slices = pd.DataFrame(slice_rows)
+    st.markdown("### Предпросмотр шкал")
+    st.dataframe(df_scales, width="stretch")
+    st.markdown("### Предпросмотр срезов")
+    st.dataframe(df_slices, width="stretch")
+
+    excel_buf = io.BytesIO()
+    with pd.ExcelWriter(excel_buf) as writer:
+        df_scales.to_excel(writer, index=False, sheet_name="Шкалы")
+        df_slices.to_excel(writer, index=False, sheet_name="Срезы")
+
     st.download_button(
-        "⬇️ Скачать CSV",
-        data=csv_buf.getvalue().encode("utf-8-sig"),
-        file_name=f"patient_{person.id}_export.csv",
-        mime="text/csv",
-        use_container_width=True,
+        "⬇️ Скачать Excel",
+        data=excel_buf.getvalue(),
+        file_name=f"patient_{person.id}_export.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        width="stretch",
     )
 
-    json_str = json.dumps(row, ensure_ascii=False, indent=2)
-    st.download_button(
-        "⬇️ Скачать JSON",
-        data=json_str.encode("utf-8"),
-        file_name=f"patient_{person.id}_export.json",
-        mime="application/json",
-        use_container_width=True,
+    st.caption(
+        "Если какая-то шкала или срез не заполнены, в выгрузке будут пустые значения для их полей."
     )
-
-    st.caption("Если какая-то шкала не заполнена, в выгрузке будут пустые значения для её полей.")

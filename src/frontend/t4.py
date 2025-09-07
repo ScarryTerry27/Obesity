@@ -109,7 +109,7 @@ def show_t4_slice():
                             except ValueError:
                                 val = None
                     values[name] = val
-        submitted = st.form_submit_button("Сохранить", use_container_width=True)
+        submitted = st.form_submit_button("Сохранить", width='stretch')
     if submitted:
         t4_upsert_result(person.id, SliceT4Input(**values))
         st.session_state["current_patient_info"] = get_person(person.id)

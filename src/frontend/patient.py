@@ -76,7 +76,7 @@ def add_patient():
         except Exception as er:
             print(er)
 
-        submitted = st.form_submit_button("Добавить пациента", use_container_width=True)
+        submitted = st.form_submit_button("Добавить пациента", width='stretch')
 
     if submitted:
         if not last_name.strip() or not first_name.strip():
@@ -111,7 +111,7 @@ def find_patient():
     with st.form("find_patient_form", clear_on_submit=False):
         q = st.text_input("Фамилия (или часть ФИО)", key="patients_find_q",
                           placeholder="Например: Иванов")
-        submitted = st.form_submit_button("Искать", use_container_width=True)
+        submitted = st.form_submit_button("Искать", width='stretch')
 
     # При сабмите — фиксируем запрос и делаем rerun
     if submitted:

@@ -217,7 +217,7 @@ def show_caprini_scale():
             fracture_pelvis_or_limb = st.checkbox("Перелом таза/конечности",
                                                   value=bool(getattr(stored, "fracture_pelvis_or_limb", False)))
 
-        submitted = st.form_submit_button("💾 Сохранить", use_container_width=True)
+        submitted = st.form_submit_button("💾 Сохранить", width='stretch')
 
     if submitted:
         # 1) синхронизация с карточкой пациента (Person)
