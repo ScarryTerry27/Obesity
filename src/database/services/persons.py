@@ -5,6 +5,7 @@ from database.models import Person
 from database.repositories.persons import PersonsRepository
 from database.schemas.persons import PersonCreate, PersonRead, PersonUpdate
 from database.services.person_scales import PersonScalesService
+from database.services.person_slices import PersonSlicesService
 from database.services.utils import NotFoundError
 
 
@@ -31,6 +32,11 @@ class PersonsService:
             out.scales = PersonScalesService(self.session).get(person_id)
         except NotFoundError:
             out.scales = None
+
+        try:
+            out.slices = PersonSlicesService(self.session).get(person_id)
+        except NotFoundError:
+            out.slices = None
         return out
 
     def list_persons(self, limit: int = 100, offset: int = 0) -> list[PersonRead]:
