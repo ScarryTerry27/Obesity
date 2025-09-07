@@ -3,7 +3,7 @@ from datetime import date, datetime
 import streamlit as st
 
 from database.schemas.slice_t2 import SliceT2Input
-from database.functions import t2_get_result, t2_upsert_result
+from database.functions import t2_get_result, t2_upsert_result, get_person
 from frontend.utils import change_menu_item
 
 FIELD_DEFS = [
@@ -95,6 +95,7 @@ def show_t2_slice():
         submitted = st.form_submit_button("Сохранить", use_container_width=True)
     if submitted:
         t2_upsert_result(person.id, SliceT2Input(**values))
+        st.session_state["current_patient_info"] = get_person(person.id)
         st.success("Данные сохранены")
         change_menu_item(item="operation")
         st.rerun()
