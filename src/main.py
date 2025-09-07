@@ -23,6 +23,7 @@ from frontend.t0 import show_t0_slice
 from frontend.t1 import show_t1_slice
 from frontend.t2 import show_t2_slice
 from frontend.t3 import show_t3_slice
+from frontend.t4 import show_t4_slice
 
 
 menu_items = {
@@ -48,6 +49,7 @@ menu_items = {
     "show_t1_slice": show_t1_slice,
     "show_t2_slice": show_t2_slice,
     "show_t3_slice": show_t3_slice,
+    "show_t4_slice": show_t4_slice,
 }
 
 
