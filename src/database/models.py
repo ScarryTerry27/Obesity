@@ -83,9 +83,9 @@ class Person(Base):
         if not self.birth_date:
             return None
         return (
-            ref.year
-            - self.birth_date.year
-            - ((ref.month, ref.day) < (self.birth_date.month, self.birth_date.day))
+                ref.year
+                - self.birth_date.year
+                - ((ref.month, ref.day) < (self.birth_date.month, self.birth_date.day))
         )
 
     def __repr__(self):
@@ -614,7 +614,7 @@ class SliceT5(Base):
     """Table for slice T5 data in deep Trendelenburg position."""
 
     __tablename__ = "slice_t5"
-    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t5_slices"))
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t5_slices"),)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     slices_id = Column(
@@ -1332,7 +1332,6 @@ class SliceT12(Base):
     )
 
     slices = relationship("PersonSlices", back_populates="t12")
-
 
 
 class ElGanzouriResult(Base):
