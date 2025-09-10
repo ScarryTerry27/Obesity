@@ -1,4 +1,3 @@
-# database/services/caprini.py
 from sqlalchemy.orm import Session
 from database.models import PersonScales, CapriniResult
 from database.repositories.person_scales import PersonScalesRepository

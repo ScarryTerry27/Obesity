@@ -614,7 +614,7 @@ class SliceT5(Base):
     """Table for slice T5 data in deep Trendelenburg position."""
 
     __tablename__ = "slice_t5"
-    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t5_slices"),)
+    __table_args__ = (UniqueConstraint("slices_id", name="uq_slice_t5_slices"))
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     slices_id = Column(
