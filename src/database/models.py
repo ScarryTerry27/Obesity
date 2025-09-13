@@ -116,6 +116,7 @@ class PersonScales(Base):
     soba_filled = Column(Boolean, nullable=False, default=False)
     lee_rcri_filled = Column(Boolean, nullable=False, default=False)
     caprini_filled = Column(Boolean, nullable=False, default=False)
+    las_vegas_filled = Column(Boolean, nullable=False, default=False)
 
     # Технические поля
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -148,6 +149,10 @@ class PersonScales(Base):
         "CapriniResult", back_populates="scales",
         uselist=False, cascade="all, delete-orphan"
     )
+    las_vegas = relationship(
+        "LasVegasResult", back_populates="scales",
+        uselist=False, cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return (
@@ -157,7 +162,8 @@ class PersonScales(Base):
             f"stopbang={self.stopbang_filled}, "
             f"soba={self.soba_filled}, "
             f"lee_rcri={self.lee_rcri_filled}, "
-            f"caprini={self.caprini_filled})>"
+            f"caprini={self.caprini_filled}, "
+            f"las_vegas={self.las_vegas_filled})>"
         )
 
 
@@ -1612,3 +1618,32 @@ class CapriniResult(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     scales = relationship("PersonScales", back_populates="caprini")
+
+
+class LasVegasResult(Base):
+    __tablename__ = "las_vegas_results"
+    __table_args__ = (UniqueConstraint("scales_id", name="uq_las_vegas_scales"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    scales_id = Column(Integer, ForeignKey("person_scales.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    age_years = Column(Integer, nullable=True)
+    asa_ps = Column(Integer, nullable=True)
+    preop_spo2 = Column(Integer, nullable=True)
+    cancer = Column(Boolean, nullable=True)
+    osa = Column(Boolean, nullable=True)
+    elective = Column(Boolean, nullable=True)
+    duration_minutes = Column(Integer, nullable=True)
+    supraglottic_device = Column(Boolean, nullable=True)
+    anesthesia_type = Column(String(32), nullable=True)
+    intraop_desaturation = Column(Boolean, nullable=True)
+    vasoactive_drugs = Column(Boolean, nullable=True)
+    peep_cm_h2o = Column(Float, nullable=True)
+
+    total_score = Column(Integer, nullable=False, default=0)
+    risk_level = Column(Integer, nullable=False, default=0)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    scales = relationship("PersonScales", back_populates="las_vegas")

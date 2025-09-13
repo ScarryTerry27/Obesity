@@ -17,6 +17,7 @@ from frontend.scales.elganzouri import show_el_ganzouri_form
 from frontend.scales.lee import show_lee_scale
 from frontend.scales.soba import show_soba_scale
 from frontend.scales.stopbang import show_stopbang_scale
+from frontend.scales.las_vegas import show_las_vegas_scale
 from frontend.component.loader import export_patient_data
 from frontend.operation import show_operation, show_postoperative, show_operation_point
 from frontend.t0 import show_t0_slice
@@ -53,6 +54,7 @@ menu_items = {
     "show_soba_scale": show_soba_scale,
     "show_lee_scale": show_lee_scale,
     "show_caprini_scale": show_caprini_scale,
+    "show_las_vegas_scale": show_las_vegas_scale,
     "show_t0_slice": show_t0_slice,
     "show_t1_slice": show_t1_slice,
     "show_t2_slice": show_t2_slice,

@@ -48,11 +48,11 @@ class PersonScalesService:
     def set_flag(self, person_id: int, scale_name: str, value: bool) -> PersonScalesRead:
         """
         scale_name: одно из
-        ['el_ganzouri_filled','ariscat_filled','soba_stopbang_filled','lee_rcri_filled','caprini_filled']
+        ['el_ganzouri_filled','ariscat_filled','soba_stopbang_filled','lee_rcri_filled','caprini_filled','las_vegas_filled']
         """
         if scale_name not in {
             "el_ganzouri_filled", "ariscat_filled", "soba_stopbang_filled",
-            "lee_rcri_filled", "caprini_filled"
+            "lee_rcri_filled", "caprini_filled", "las_vegas_filled"
         }:
             raise ValueError(f"Unknown scale flag: {scale_name}")
 

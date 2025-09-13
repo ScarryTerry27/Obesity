@@ -144,7 +144,7 @@ def show_operation():
 def show_postoperative():
     person = st.session_state["current_patient_info"]
     st.title(f"🏥 Послеоперационный период пациента {person.fio}")
-
+    scales_status = getattr(person, "scales", None)
     slices_status = getattr(person, "slices", None)
     t9_filled = bool(getattr(slices_status, "t9_filled", False)) if slices_status else False
     t10_filled = bool(getattr(slices_status, "t10_filled", False)) if slices_status else False
@@ -204,6 +204,21 @@ def show_postoperative():
             kwargs={"item": "show_t12_slice"},
             icon="📝",
             key="t12_btn",
+        )
+
+    las_filled = bool(getattr(scales_status, 'las_vegas_filled', False)) if scales_status else False
+    col9, col10 = st.columns([2, 1])
+    with col9:
+        st.markdown(
+            f"**Шкала LAS VEGAS — оценка послеоперационного риска**  \nСтатус: {'✅ Заполнено' if las_filled else '❌ Не заполнено'}"
+        )
+    with col10:
+        create_big_button(
+            'Перейти',
+            on_click=change_menu_item,
+            kwargs={'item': 'show_las_vegas_scale'},
+            icon='🧮',
+            key='las_vegas_btn',
         )
 
 
