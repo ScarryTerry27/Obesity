@@ -61,6 +61,12 @@ def _caprini_label(level):
     ][max(0, min(4, int(level)))]
 
 
+def _las_vegas_label(level):
+    if level is None:
+        return "—"
+    return ["Низкий", "Промежуточный", "Высокий"][max(0, min(2, int(level)))]
+
+
 def _rcri_risk(score):
     if score is None:
         return "—"
@@ -251,6 +257,11 @@ def export_patients():
         "SOBA": "SOBA",
         "RCRI": "RCRI",
         "Caprini": "Caprini",
+        "LasVegas": "Las Vegas",
+        "QoR-15": "QoR-15",
+        "Aldrete": "Aldrete",
+        "MMSE_t0": "MMSE t0",
+        "MMSE_t10": "MMSE t10",
     }
 
     slices = {
@@ -351,6 +362,27 @@ def export_patients():
                 cap = _safe(db_funcs.caprini_get_result, person.id, label="Caprini")
                 row["Caprini: сумма"] = getattr(cap, "total_score", None)
                 row["Caprini: риск"] = _caprini_label(getattr(cap, "risk_level", None))
+
+            if "LasVegas" in selected_scales:
+                lv = _safe(db_funcs.lv_get_result, person.id, label="Las Vegas")
+                row["Las Vegas: сумма"] = getattr(lv, "total_score", None)
+                row["Las Vegas: риск"] = _las_vegas_label(getattr(lv, "risk_level", None))
+
+            if "QoR-15" in selected_scales:
+                qor = _safe(db_funcs.qor15_get_result, person.id, label="QoR-15")
+                row["QoR-15: сумма"] = getattr(qor, "total_score", None)
+
+            if "Aldrete" in selected_scales:
+                ald = _safe(db_funcs.ald_get_result, person.id, label="Aldrete")
+                row["Aldrete: сумма"] = getattr(ald, "total_score", None)
+
+            if "MMSE_t0" in selected_scales:
+                mm0 = _safe(db_funcs.mmse_get_result, person.id, 0, label="MMSE t0")
+                row["MMSE t0: сумма"] = getattr(mm0, "total_score", None)
+
+            if "MMSE_t10" in selected_scales:
+                mm10 = _safe(db_funcs.mmse_get_result, person.id, 10, label="MMSE t10")
+                row["MMSE t10: сумма"] = getattr(mm10, "total_score", None)
 
             for slice_key in selected_slices:
                 data = _safe(slices[slice_key], person.id, label=f"срез {slice_key}")

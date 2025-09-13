@@ -48,6 +48,12 @@ def _caprini_label(level):
     return ["Очень низкий", "Низкий", "Умеренный", "Высокий", "Очень высокий"][max(0, min(4, int(level)))]
 
 
+def _las_vegas_label(level):
+    if level is None:
+        return "—"
+    return ["Низкий", "Промежуточный", "Высокий"][max(0, min(2, int(level)))]
+
+
 def _rcri_risk(score):
     if score is None: return "—"
     if score == 0: return "≈0.4%"
@@ -77,6 +83,11 @@ def export_patient_data():
     soba = _safe(db_funcs.get_soba, person.id, label="SOBA")  # -> SobaRead | None
     rcri = _safe(db_funcs.rcri_get_result, person.id, label="RCRI")  # -> LeeRcriRead | None
     cap = _safe(db_funcs.caprini_get_result, person.id, label="Caprini")  # -> CapriniRead | None
+    lv = _safe(db_funcs.lv_get_result, person.id, label="Las Vegas")
+    qor = _safe(db_funcs.qor15_get_result, person.id, label="QoR-15")
+    ald = _safe(db_funcs.ald_get_result, person.id, label="Aldrete")
+    mmse_t0 = _safe(db_funcs.mmse_get_result, person.id, 0, label="MMSE t0")
+    mmse_t10 = _safe(db_funcs.mmse_get_result, person.id, 10, label="MMSE t10")
 
     # 2b) Подтягиваем все срезы динамически (T0…T12)
     slices_data = []
@@ -149,6 +160,21 @@ def export_patient_data():
     add_scale("Caprini", cap)
     if cap is not None:
         row["Caprini: риск"] = _caprini_label(cap.risk_level)
+
+    # Las Vegas
+    add_scale("Las Vegas", lv)
+    if lv is not None:
+        row["Las Vegas: риск"] = _las_vegas_label(getattr(lv, "risk_level", None))
+
+    # QoR-15
+    add_scale("QoR-15", qor)
+
+    # Aldrete
+    add_scale("Aldrete", ald)
+
+    # MMSE
+    add_scale("MMSE t0", mmse_t0)
+    add_scale("MMSE t10", mmse_t10)
 
     # 4) Добавляем все поля срезов в основную строку
     for name, data, schema in slices_data:

@@ -91,6 +91,7 @@ def _show_form(timepoint: int, back_item: str, title: str):
             for field, label in items:
                 key = f"{field}_{timepoint}"
                 values[field] = st.checkbox(label, key=key)
+            st.write("")
         submitted = st.form_submit_button("💾 Сохранить", width='stretch')
 
     if submitted:
