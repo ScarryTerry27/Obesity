@@ -8,6 +8,7 @@ from database.schemas.persons import PersonCreate, PersonRead, PersonUpdate
 from database.schemas.soba import SobaRead, SobaCreate, SobaUpdate
 from database.schemas.stopbang import StopBangRead, StopBangInput
 from database.schemas.las_vegas import LasVegasRead, LasVegasInput
+from database.schemas.mmse import MMSEInput, MMSEResultRead
 from database.schemas.aldrete import AldreteRead, AldreteInput
 from database.schemas.slice_t0 import SliceT0Input, SliceT0Read
 from database.schemas.slice_t1 import SliceT1Input, SliceT1Read
@@ -21,6 +22,7 @@ from database.services.soba import SobaService
 from database.services.stopbang import StopBangService
 from database.services.las_vegas import LasVegasService
 from database.services.aldrete import AldreteService
+from database.services.mmse import MMSEService
 from database.services.slice_t0 import SliceT0Service
 from database.services.slice_t1 import SliceT1Service
 from database.services.slice_t2 import SliceT2Service
@@ -211,6 +213,27 @@ def ald_clear_result(person_id: int) -> bool:
     with SessionLocal() as session:
         svc = AldreteService(session)
         return svc.clear_result(person_id)
+
+
+def mmse_get_result(person_id: int, timepoint: int) -> MMSEResultRead | None:
+    with SessionLocal() as session:
+        svc = MMSEService(session)
+        try:
+            return svc.get_result(person_id, timepoint)
+        except NotFoundError:
+            return None
+
+
+def mmse_upsert_result(person_id: int, timepoint: int, data: MMSEInput) -> MMSEResultRead:
+    with SessionLocal() as session:
+        svc = MMSEService(session)
+        return svc.upsert_result(person_id, timepoint, data)
+
+
+def mmse_clear_result(person_id: int, timepoint: int) -> bool:
+    with SessionLocal() as session:
+        svc = MMSEService(session)
+        return svc.clear_result(person_id, timepoint)
 
 
 def update_person_fields(person_id: int, **fields):
