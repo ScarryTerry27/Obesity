@@ -43,10 +43,12 @@ def show_qor15_scale():
     with st.form("qor15_form"):
         values = {}
         for field, label in QUESTIONS:
-            values[field] = st.select_slider(
+            values[field] = st.number_input(
                 label,
-                options=list(range(0, 11)),
-                value=int(getattr(stored, field, 0)),
+                min_value=0,
+                max_value=10,
+                value=int(getattr(stored, field, 10)),
+                step=1,
                 key=field,
             )
         submitted = st.form_submit_button("💾 Сохранить", width='stretch')
