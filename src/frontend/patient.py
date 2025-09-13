@@ -430,6 +430,7 @@ def preoperative_exam():
         ("Рекомендации SOBA — план ведения при ожирении", "show_soba_scale", "soba_filled", "soba"),
         ("Индекс Lee (RCRI) — оценка кардиального риска", "show_lee_scale", "lee_rcri_filled", "lee_rcri"),
         ("Шкала Caprini — оценка риска ВТЭО", "show_caprini_scale", "caprini_filled", "caprini"),
+        ("Шкала Aldrete — оценка выхода из анестезии", "show_aldrete_scale", "aldrete_filled", "aldrete"),
     ]
 
     for i, (label, item, status_field, rel_field) in enumerate(scales):
