@@ -20,6 +20,7 @@ from frontend.scales.stopbang import show_stopbang_scale
 from frontend.scales.las_vegas import show_las_vegas_scale
 from frontend.scales.aldrete import show_aldrete_scale
 from frontend.scales.mmse import show_mmse_t0, show_mmse_t10
+from frontend.scales.qor15 import show_qor15_scale
 from frontend.component.loader import export_patient_data
 from frontend.operation import show_operation, show_postoperative, show_operation_point
 from frontend.t0 import show_t0_slice
@@ -60,6 +61,7 @@ menu_items = {
     "show_aldrete_scale": show_aldrete_scale,
     "show_mmse_t0": show_mmse_t0,
     "show_mmse_t10": show_mmse_t10,
+    "show_qor15_scale": show_qor15_scale,
     "show_t0_slice": show_t0_slice,
     "show_t1_slice": show_t1_slice,
     "show_t2_slice": show_t2_slice,

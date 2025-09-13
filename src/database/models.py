@@ -120,6 +120,7 @@ class PersonScales(Base):
     aldrete_filled = Column(Boolean, nullable=False, default=False)
     mmse_t0_filled = Column(Boolean, nullable=False, default=False)
     mmse_t10_filled = Column(Boolean, nullable=False, default=False)
+    qor15_filled = Column(Boolean, nullable=False, default=False)
 
     # Технические поля
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -164,6 +165,10 @@ class PersonScales(Base):
         "MMSEResult", back_populates="scales",
         uselist=True, cascade="all, delete-orphan"
     )
+    qor15 = relationship(
+        "Qor15Result", back_populates="scales",
+        uselist=False, cascade="all, delete-orphan",
+    )
 
     def __repr__(self):
         return (
@@ -179,6 +184,8 @@ class PersonScales(Base):
             f"las_vegas={self.las_vegas_filled}, "
             f"mmse_t0={self.mmse_t0_filled}, "
             f"mmse_t10={self.mmse_t10_filled})>"
+            f"las_vegas={self.las_vegas_filled}, "
+            f"qor15={self.qor15_filled})>"
         )
 
 
@@ -1737,3 +1744,38 @@ class AldreteResult(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     scales = relationship("PersonScales", back_populates="aldrete")
+
+
+class Qor15Result(Base):
+    __tablename__ = "qor15_results"
+    __table_args__ = (UniqueConstraint("scales_id", name="uq_qor15_scales"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    scales_id = Column(
+        Integer, ForeignKey("person_scales.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+
+    q1 = Column(SmallInteger, nullable=False, default=0)
+    q2 = Column(SmallInteger, nullable=False, default=0)
+    q3 = Column(SmallInteger, nullable=False, default=0)
+    q4 = Column(SmallInteger, nullable=False, default=0)
+    q5 = Column(SmallInteger, nullable=False, default=0)
+    q6 = Column(SmallInteger, nullable=False, default=0)
+    q7 = Column(SmallInteger, nullable=False, default=0)
+    q8 = Column(SmallInteger, nullable=False, default=0)
+    q9 = Column(SmallInteger, nullable=False, default=0)
+    q10 = Column(SmallInteger, nullable=False, default=0)
+    q11 = Column(SmallInteger, nullable=False, default=0)
+    q12 = Column(SmallInteger, nullable=False, default=0)
+    q13 = Column(SmallInteger, nullable=False, default=0)
+    q14 = Column(SmallInteger, nullable=False, default=0)
+    q15 = Column(SmallInteger, nullable=False, default=0)
+
+    total_score = Column(Integer, nullable=False, default=0)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    scales = relationship("PersonScales", back_populates="qor15")

@@ -49,11 +49,21 @@ class PersonScalesService:
         """
         scale_name: одно из
         ['el_ganzouri_filled','ariscat_filled','soba_stopbang_filled','lee_rcri_filled','caprini_filled','las_vegas_filled','aldrete_filled']
+        ['el_ganzouri_filled','ariscat_filled','stopbang_filled','soba_filled',
+        'lee_rcri_filled','caprini_filled','las_vegas_filled','qor15_filled']
         """
         if scale_name not in {
             "el_ganzouri_filled", "ariscat_filled", "soba_stopbang_filled",
             "lee_rcri_filled", "caprini_filled", "las_vegas_filled",
             "aldrete_filled"
+            "el_ganzouri_filled",
+            "ariscat_filled",
+            "stopbang_filled",
+            "soba_filled",
+            "lee_rcri_filled",
+            "caprini_filled",
+            "las_vegas_filled",
+            "qor15_filled",
         }:
             raise ValueError(f"Unknown scale flag: {scale_name}")
 

@@ -11,6 +11,7 @@ class PersonScalesRead(BaseModel):
     lee_rcri_filled: bool = False
     caprini_filled: bool = False
     las_vegas_filled: bool = False
+    qor15_filled: bool = False
     aldrete_filled: bool = False
     mmse_t0_filled: bool = False
     mmse_t10_filled: bool = False
@@ -31,3 +32,4 @@ class PersonScalesUpdate(BaseModel):
     mmse_t0_filled: Optional[bool] = None
     mmse_t10_filled: Optional[bool] = None
     aldrete_filled: Optional[bool] = None
+    qor15_filled: Optional[bool] = None
