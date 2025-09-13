@@ -1,8 +1,11 @@
 import io
+import os
 from importlib import import_module
 
 import pandas as pd
 import streamlit as st
+
+from backend.reporting import generate_patient_report
 
 import database.functions as db_funcs
 from frontend.general import create_big_button
@@ -171,6 +174,37 @@ def export_patient_data():
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         width="stretch",
     )
+
+    if st.button("📄 Сформировать PDF-отчёт", key="gen_pdf_btn"):
+        patient_info = {
+            "id": person.id,
+            "fio": person.fio,
+            "age": getattr(person, "age", None),
+            "height": getattr(person, "height", None),
+            "weight": getattr(person, "weight", None),
+        }
+        scales = {
+            "EL-Ganzouri": getattr(elg, "total_score", None),
+            "ARISCAT": getattr(ar, "total_score", None),
+            "STOP-BANG": getattr(sb, "total_score", None),
+            "SOBA": getattr(soba, "total_score", None),
+            "RCRI": getattr(rcri, "total_score", None),
+            "Caprini": getattr(cap, "total_score", None),
+        }
+        pdf_path = generate_patient_report(patient_info, scales)
+        st.session_state["pdf_report_path"] = pdf_path
+        st.success("Отчёт сформирован")
+
+    pdf_path = st.session_state.get("pdf_report_path")
+    if pdf_path and os.path.exists(pdf_path):
+        with open(pdf_path, "rb") as pdf_file:
+            st.download_button(
+                "⬇️ Скачать PDF",
+                data=pdf_file.read(),
+                file_name=os.path.basename(pdf_path),
+                mime="application/pdf",
+                key="download_pdf_btn",
+            )
 
     st.caption(
         "Если какая-то шкала или срез не заполнены, в выгрузке будут пустые значения для их полей."
