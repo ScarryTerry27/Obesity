@@ -9,6 +9,7 @@ class PersonScalesRead(BaseModel):
     soba_filled: bool = False
     lee_rcri_filled: bool = False
     caprini_filled: bool = False
+    las_vegas_filled: bool = False
 
     class Config:
         from_attributes = True
@@ -21,3 +22,4 @@ class PersonScalesUpdate(BaseModel):
     soba_stopbang_filled: Optional[bool] = None
     lee_rcri_filled: Optional[bool] = None
     caprini_filled: Optional[bool] = None
+    las_vegas_filled: Optional[bool] = None
