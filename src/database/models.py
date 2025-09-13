@@ -117,6 +117,8 @@ class PersonScales(Base):
     lee_rcri_filled = Column(Boolean, nullable=False, default=False)
     caprini_filled = Column(Boolean, nullable=False, default=False)
     las_vegas_filled = Column(Boolean, nullable=False, default=False)
+    mmse_t0_filled = Column(Boolean, nullable=False, default=False)
+    mmse_t10_filled = Column(Boolean, nullable=False, default=False)
 
     # Технические поля
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -153,6 +155,10 @@ class PersonScales(Base):
         "LasVegasResult", back_populates="scales",
         uselist=False, cascade="all, delete-orphan"
     )
+    mmse_results = relationship(
+        "MMSEResult", back_populates="scales",
+        uselist=True, cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return (
@@ -163,7 +169,9 @@ class PersonScales(Base):
             f"soba={self.soba_filled}, "
             f"lee_rcri={self.lee_rcri_filled}, "
             f"caprini={self.caprini_filled}, "
-            f"las_vegas={self.las_vegas_filled})>"
+            f"las_vegas={self.las_vegas_filled}, "
+            f"mmse_t0={self.mmse_t0_filled}, "
+            f"mmse_t10={self.mmse_t10_filled})>"
         )
 
 
@@ -1426,6 +1434,60 @@ class AriscatResult(Base):
 
     # связь назад к PersonScales
     scales = relationship("PersonScales", back_populates="ariscat")
+
+
+class MMSEResult(Base):
+    """Результат теста Mini-Mental State Examination (t0 и t10)."""
+    __tablename__ = "mmse_results"
+    __table_args__ = (UniqueConstraint("scales_id", "timepoint", name="uq_mmse_scales_time"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    scales_id = Column(Integer, ForeignKey("person_scales.id", ondelete="CASCADE"), nullable=False, index=True)
+    timepoint = Column(SmallInteger, nullable=False)  # 0 = до операции, 10 = после
+
+    orientation_date = Column(SmallInteger, nullable=False, default=0)
+    orientation_month = Column(SmallInteger, nullable=False, default=0)
+    orientation_year = Column(SmallInteger, nullable=False, default=0)
+    orientation_weekday = Column(SmallInteger, nullable=False, default=0)
+    orientation_season = Column(SmallInteger, nullable=False, default=0)
+    orientation_city = Column(SmallInteger, nullable=False, default=0)
+    orientation_region = Column(SmallInteger, nullable=False, default=0)
+    orientation_institution = Column(SmallInteger, nullable=False, default=0)
+    orientation_floor = Column(SmallInteger, nullable=False, default=0)
+    orientation_country = Column(SmallInteger, nullable=False, default=0)
+
+    registration_ball1 = Column(SmallInteger, nullable=False, default=0)
+    registration_ball2 = Column(SmallInteger, nullable=False, default=0)
+    registration_ball3 = Column(SmallInteger, nullable=False, default=0)
+
+    attention_93 = Column(SmallInteger, nullable=False, default=0)
+    attention_86 = Column(SmallInteger, nullable=False, default=0)
+    attention_79 = Column(SmallInteger, nullable=False, default=0)
+    attention_72 = Column(SmallInteger, nullable=False, default=0)
+    attention_65 = Column(SmallInteger, nullable=False, default=0)
+
+    recall_ball1 = Column(SmallInteger, nullable=False, default=0)
+    recall_ball2 = Column(SmallInteger, nullable=False, default=0)
+    recall_ball3 = Column(SmallInteger, nullable=False, default=0)
+
+    language_clock = Column(SmallInteger, nullable=False, default=0)
+    language_pen = Column(SmallInteger, nullable=False, default=0)
+    language_repeat = Column(SmallInteger, nullable=False, default=0)
+
+    command_take_paper = Column(SmallInteger, nullable=False, default=0)
+    command_fold_paper = Column(SmallInteger, nullable=False, default=0)
+    command_put_on_knee = Column(SmallInteger, nullable=False, default=0)
+
+    reading_close_eyes = Column(SmallInteger, nullable=False, default=0)
+    writing_sentence = Column(SmallInteger, nullable=False, default=0)
+    copying_pentagons = Column(SmallInteger, nullable=False, default=0)
+
+    total_score = Column(Integer, nullable=False, default=0)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    scales = relationship("PersonScales", back_populates="mmse_results")
 
 
 class StopBangResult(Base):

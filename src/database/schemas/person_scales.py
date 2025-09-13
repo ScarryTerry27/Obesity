@@ -1,5 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
+from database.schemas.mmse import MMSEResultRead
 
 
 class PersonScalesRead(BaseModel):
@@ -10,6 +11,9 @@ class PersonScalesRead(BaseModel):
     lee_rcri_filled: bool = False
     caprini_filled: bool = False
     las_vegas_filled: bool = False
+    mmse_t0_filled: bool = False
+    mmse_t10_filled: bool = False
+    mmse_results: list[MMSEResultRead] | None = None
 
     class Config:
         from_attributes = True
@@ -23,3 +27,5 @@ class PersonScalesUpdate(BaseModel):
     lee_rcri_filled: Optional[bool] = None
     caprini_filled: Optional[bool] = None
     las_vegas_filled: Optional[bool] = None
+    mmse_t0_filled: Optional[bool] = None
+    mmse_t10_filled: Optional[bool] = None

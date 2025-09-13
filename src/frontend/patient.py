@@ -421,6 +421,30 @@ def preoperative_exam():
             key="t0_btn",
         )
 
+    mmse_t0_filled = bool(getattr(scales_status, "mmse_t0_filled", False)) if scales_status else False
+    mmse_t0_score = None
+    if mmse_t0_filled and scales_status:
+        for r in getattr(scales_status, "mmse_results", []) or []:
+            if getattr(r, "timepoint", None) == 0:
+                mmse_t0_score = getattr(r, "total_score", None)
+                break
+    col_mmse1, col_mmse2 = st.columns([2, 1])
+    with col_mmse1:
+        status = (
+            f"✅ Заполнено · Баллы: **{mmse_t0_score}**" if mmse_t0_score is not None else (
+                "✅ Заполнено" if mmse_t0_filled else "❌ Не заполнено"
+            )
+        )
+        st.markdown(f"**Шкала MMSE (t0) — когнитивный статус**  \\nСтатус: {status}")
+    with col_mmse2:
+        create_big_button(
+            "Перейти",
+            on_click=change_menu_item,
+            kwargs={"item": "show_mmse_t0"},
+            icon="📊",
+            key="mmse_t0_btn",
+        )
+
     # ВАЖНО: разделили STOP-BANG и SOBA на отдельные строки
     scales = [
         ("Шкала El-Ganzouri — прогноз трудной интубации", "show_elganzouri_scale", "el_ganzouri_filled", "el_ganzouri"),

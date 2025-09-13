@@ -178,6 +178,30 @@ def show_postoperative():
             icon="📝",
             key="t10_btn",
         )
+
+    mmse_t10_filled = bool(getattr(scales_status, "mmse_t10_filled", False)) if scales_status else False
+    mmse_t10_score = None
+    if mmse_t10_filled and scales_status:
+        for r in getattr(scales_status, "mmse_results", []) or []:
+            if getattr(r, "timepoint", None) == 10:
+                mmse_t10_score = getattr(r, "total_score", None)
+                break
+    col_mm1, col_mm2 = st.columns([2, 1])
+    with col_mm1:
+        status = (
+            f"✅ Заполнено · Баллы: **{mmse_t10_score}**" if mmse_t10_score is not None else (
+                "✅ Заполнено" if mmse_t10_filled else "❌ Не заполнено"
+            )
+        )
+        st.markdown(f"**Шкала MMSE (t10) — когнитивный статус**  \nСтатус: {status}")
+    with col_mm2:
+        create_big_button(
+            "Перейти",
+            on_click=change_menu_item,
+            kwargs={"item": "show_mmse_t10"},
+            icon="📊",
+            key="mmse_t10_btn",
+        )
     col5, col6 = st.columns([2, 1])
     with col5:
         st.markdown(
