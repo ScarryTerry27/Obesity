@@ -67,15 +67,30 @@ def _show_form(timepoint: int, back_item: str, title: str):
     stored = mmse_get_result(person.id, timepoint)
     defaults = {name: bool(getattr(stored, name, False)) for group in GROUPS for name, _ in group[1]}
 
+    # Инициализируем состояние чекбоксов сохранёнными значениями
+    for group_name, items in GROUPS:
+        for field, _ in items:
+            key = f"{field}_{timepoint}"
+            if key not in st.session_state:
+                st.session_state[key] = defaults.get(field, False)
+
     if stored:
         st.info(f"Текущие данные: баллы **{stored.total_score}**")
+
+    def _mark_all():
+        for group_name, items in GROUPS:
+            for field, _ in items:
+                st.session_state[f"{field}_{timepoint}"] = True
+
+    st.button("✅ Отметить все", on_click=_mark_all, key=f"mmse_mark_all_{timepoint}")
 
     with st.form(f"mmse_form_{timepoint}"):
         values = {}
         for group_name, items in GROUPS:
             st.markdown(f"**{group_name}**")
             for field, label in items:
-                values[field] = st.checkbox(label, value=defaults.get(field, False))
+                key = f"{field}_{timepoint}"
+                values[field] = st.checkbox(label, key=key)
         submitted = st.form_submit_button("💾 Сохранить", width='stretch')
 
     if submitted:

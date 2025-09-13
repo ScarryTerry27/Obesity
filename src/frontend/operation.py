@@ -43,7 +43,8 @@ def show_operation():
     col_t2_1, col_t2_2 = st.columns([2, 1])
     with col_t2_1:
         st.markdown(
-            f"**Срез t2 - через 15 мин после эпидурального болюса**  \nСтатус: {'✅ Заполнено' if t2_filled else '❌ Не заполнено'}"
+            f"**Срез t2 - через 15 мин после эпидурального болюса**  \n"
+            f"Статус: {'✅ Заполнено' if t2_filled else '❌ Не заполнено'}"
         )
     with col_t2_2:
         create_big_button(
@@ -57,7 +58,8 @@ def show_operation():
     col_t3_1, col_t3_2 = st.columns([2, 1])
     with col_t3_1:
         st.markdown(
-            f"**Срез t3 - после индукции анестезии и интубации трахеи**  \nСтатус: {'✅ Заполнено' if t3_filled else '❌ Не заполнено'}"
+            f"**Срез t3 - после индукции анестезии и интубации трахеи**  \n"
+            f"Статус: {'✅ Заполнено' if t3_filled else '❌ Не заполнено'}"
         )
     with col_t3_2:
         create_big_button(
@@ -71,7 +73,8 @@ def show_operation():
     col_t4_1, col_t4_2 = st.columns([2, 1])
     with col_t4_1:
         st.markdown(
-            f"**Срез t4 - после инсуффляции газа в брюшную полость**  \nСтатус: {'✅ Заполнено' if t4_filled else '❌ Не заполнено'}"
+            f"**Срез t4 - после инсуффляции газа в брюшную полость**  \n"
+            f"Статус: {'✅ Заполнено' if t4_filled else '❌ Не заполнено'}"
         )
     with col_t4_2:
         create_big_button(
@@ -85,7 +88,8 @@ def show_operation():
     col_t5_1, col_t5_2 = st.columns([2, 1])
     with col_t5_1:
         st.markdown(
-            f"**Срез t5 - в глубоком положении Тренделенбурга**  \nСтатус: {'✅ Заполнено' if t5_filled else '❌ Не заполнено'}"
+            f"**Срез t5 - в глубоком положении Тренделенбурга**  \n"
+            f"Статус: {'✅ Заполнено' if t5_filled else '❌ Не заполнено'}"
         )
     with col_t5_2:
         create_big_button(
@@ -99,7 +103,8 @@ def show_operation():
     col_t6_1, col_t6_2 = st.columns([2, 1])
     with col_t6_1:
         st.markdown(
-            f"**Срез t6 - основной этап операции**  \nСтатус: {'✅ Заполнено' if t6_filled else '❌ Не заполнено'}"
+            f"**Срез t6 - основной этап операции**  \n"
+            f"Статус: {'✅ Заполнено' if t6_filled else '❌ Не заполнено'}"
         )
     with col_t6_2:
         create_big_button(
@@ -113,7 +118,8 @@ def show_operation():
     col_t7_1, col_t7_2 = st.columns([2, 1])
     with col_t7_1:
         st.markdown(
-            f"**Срез t7 - после десуффляции газа из брюшной полости**  \nСтатус: {'✅ Заполнено' if t7_filled else '❌ Не заполнено'}"
+            f"**Срез t7 - после десуффляции газа из брюшной полости**  \n"
+            f"Статус: {'✅ Заполнено' if t7_filled else '❌ Не заполнено'}"
         )
     with col_t7_2:
         create_big_button(
@@ -127,7 +133,8 @@ def show_operation():
     col_t8_1, col_t8_2 = st.columns([2, 1])
     with col_t8_1:
         st.markdown(
-            f"**Срез t8 - сразу после экстубации трахеи**  \nСтатус: {'✅ Заполнено' if t8_filled else '❌ Не заполнено'}"
+            f"**Срез t8 - сразу после экстубации трахеи**  \n"
+            f"Статус: {'✅ Заполнено' if t8_filled else '❌ Не заполнено'}"
         )
     with col_t8_2:
         create_big_button(
@@ -154,7 +161,8 @@ def show_postoperative():
     col1, col2 = st.columns([2, 1])
     with col1:
         st.markdown(
-            f"**Срез t9 - через час после перевода в АРО**  \nСтатус: {'✅ Заполнено' if t9_filled else '❌ Не заполнено'}"
+            f"**Срез t9 - через час после перевода в АРО**  \n"
+            f"Статус: {'✅ Заполнено' if t9_filled else '❌ Не заполнено'}"
         )
     with col2:
         create_big_button(
@@ -168,7 +176,8 @@ def show_postoperative():
     col3, col4 = st.columns([2, 1])
     with col3:
         st.markdown(
-            f"**Срез t10 - конец 1-х суток после операции**  \nСтатус: {'✅ Заполнено' if t10_filled else '❌ Не заполнено'}"
+            f"**Срез t10 - конец 1-х суток после операции**  \n"
+            f"Статус: {'✅ Заполнено' if t10_filled else '❌ Не заполнено'}"
         )
     with col4:
         create_big_button(
@@ -205,7 +214,8 @@ def show_postoperative():
     col5, col6 = st.columns([2, 1])
     with col5:
         st.markdown(
-            f"**Срез t11 - конец 2-х суток после операции**  \nСтатус: {'✅ Заполнено' if t11_filled else '❌ Не заполнено'}"
+            f"**Срез t11 - конец 2-х суток после операции**  \n"
+            f"Статус: {'✅ Заполнено' if t11_filled else '❌ Не заполнено'}"
         )
     with col6:
         create_big_button(
@@ -219,7 +229,8 @@ def show_postoperative():
     col7, col8 = st.columns([2, 1])
     with col7:
         st.markdown(
-            f"**Срез t12 - конец 5-х суток после операции**  \nСтатус: {'✅ Заполнено' if t12_filled else '❌ Не заполнено'}"
+            f"**Срез t12 - конец 5-х суток после операции**  \n"
+            f"Статус: {'✅ Заполнено' if t12_filled else '❌ Не заполнено'}"
         )
     with col8:
         create_big_button(
@@ -234,7 +245,8 @@ def show_postoperative():
     col9, col10 = st.columns([2, 1])
     with col9:
         st.markdown(
-            f"**Шкала LAS VEGAS — оценка послеоперационного риска**  \nСтатус: {'✅ Заполнено' if las_filled else '❌ Не заполнено'}"
+            f"**Шкала LAS VEGAS — оценка послеоперационного риска**  \n"
+            f"Статус: {'✅ Заполнено' if las_filled else '❌ Не заполнено'}"
         )
     with col10:
         create_big_button(
