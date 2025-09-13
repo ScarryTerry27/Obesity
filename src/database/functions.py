@@ -8,6 +8,7 @@ from database.schemas.persons import PersonCreate, PersonRead, PersonUpdate
 from database.schemas.soba import SobaRead, SobaCreate, SobaUpdate
 from database.schemas.stopbang import StopBangRead, StopBangInput
 from database.schemas.las_vegas import LasVegasRead, LasVegasInput
+from database.schemas.aldrete import AldreteRead, AldreteInput
 from database.schemas.slice_t0 import SliceT0Input, SliceT0Read
 from database.schemas.slice_t1 import SliceT1Input, SliceT1Read
 from database.schemas.slice_t2 import SliceT2Input, SliceT2Read
@@ -19,6 +20,7 @@ from database.services.persons import PersonsService
 from database.services.soba import SobaService
 from database.services.stopbang import StopBangService
 from database.services.las_vegas import LasVegasService
+from database.services.aldrete import AldreteService
 from database.services.slice_t0 import SliceT0Service
 from database.services.slice_t1 import SliceT1Service
 from database.services.slice_t2 import SliceT2Service
@@ -187,6 +189,27 @@ def lv_upsert_result(person_id: int, data: LasVegasInput) -> LasVegasRead:
 def lv_clear_result(person_id: int) -> bool:
     with SessionLocal() as session:
         svc = LasVegasService(session)
+        return svc.clear_result(person_id)
+
+
+def ald_get_result(person_id: int) -> AldreteRead | None:
+    with SessionLocal() as session:
+        svc = AldreteService(session)
+        try:
+            return svc.get_result(person_id)
+        except NotFoundError:
+            return None
+
+
+def ald_upsert_result(person_id: int, data: AldreteInput) -> AldreteRead:
+    with SessionLocal() as session:
+        svc = AldreteService(session)
+        return svc.upsert_result(person_id, data)
+
+
+def ald_clear_result(person_id: int) -> bool:
+    with SessionLocal() as session:
+        svc = AldreteService(session)
         return svc.clear_result(person_id)
 
 

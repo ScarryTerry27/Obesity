@@ -117,6 +117,7 @@ class PersonScales(Base):
     lee_rcri_filled = Column(Boolean, nullable=False, default=False)
     caprini_filled = Column(Boolean, nullable=False, default=False)
     las_vegas_filled = Column(Boolean, nullable=False, default=False)
+    aldrete_filled = Column(Boolean, nullable=False, default=False)
 
     # Технические поля
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -153,6 +154,10 @@ class PersonScales(Base):
         "LasVegasResult", back_populates="scales",
         uselist=False, cascade="all, delete-orphan"
     )
+    aldrete = relationship(
+        "AldreteResult", back_populates="scales",
+        uselist=False, cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return (
@@ -163,7 +168,8 @@ class PersonScales(Base):
             f"soba={self.soba_filled}, "
             f"lee_rcri={self.lee_rcri_filled}, "
             f"caprini={self.caprini_filled}, "
-            f"las_vegas={self.las_vegas_filled})>"
+            f"las_vegas={self.las_vegas_filled}, "
+            f"aldrete={self.aldrete_filled})>"
         )
 
 
@@ -1647,3 +1653,24 @@ class LasVegasResult(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     scales = relationship("PersonScales", back_populates="las_vegas")
+
+
+class AldreteResult(Base):
+    __tablename__ = "aldrete_results"
+    __table_args__ = (UniqueConstraint("scales_id", name="uq_aldrete_scales"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    scales_id = Column(Integer, ForeignKey("person_scales.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    activity_score = Column(Integer, nullable=False, default=0)
+    respiration_score = Column(Integer, nullable=False, default=0)
+    pressure_score = Column(Integer, nullable=False, default=0)
+    consciousness_score = Column(Integer, nullable=False, default=0)
+    spo2_score = Column(Integer, nullable=False, default=0)
+
+    total_score = Column(Integer, nullable=False, default=0)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    scales = relationship("PersonScales", back_populates="aldrete")
