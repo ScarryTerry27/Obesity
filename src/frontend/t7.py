@@ -1,11 +1,9 @@
-from datetime import date, datetime
-
 import streamlit as st
 
 from database.schemas.slice_t7 import SliceT7Input
 from database.functions import t7_get_result, t7_upsert_result, get_person
 from frontend.utils import change_menu_item
-from frontend.components import create_big_button
+from frontend.components import create_big_button, render_slice_form
 
 
 FIELD_DEFS = [
@@ -81,37 +79,7 @@ def show_t7_slice():
     existing = t7_get_result(person.id)
     defaults = existing.model_dump() if existing else {}
 
-    with st.form("t7_form"):
-        values = {}
-        for i in range(0, len(FIELD_DEFS), 4):
-            cols = st.columns(4)
-            for col, (name, label, placeholder, ftype) in zip(cols, FIELD_DEFS[i:i+4]):
-                default = defaults.get(name)
-                with col:
-                    if ftype == "date":
-                        val = st.date_input(label, value=default or date.today(), key=name)
-                    elif ftype == "time":
-                        val = st.time_input(label, value=default or datetime.now().time(), key=name)
-                    elif ftype == "bool":
-                        val = st.checkbox(label, value=bool(default), key=name)
-                    elif ftype == "str":
-                        val = st.text_input(label, value=default or "", placeholder=placeholder, key=name)
-                    else:
-                        val_str = st.text_input(
-                            label,
-                            value="" if default is None else str(default),
-                            placeholder=placeholder,
-                            key=name,
-                        )
-                        if val_str == "":
-                            val = None
-                        else:
-                            try:
-                                val = float(val_str.replace(',', '.'))
-                            except ValueError:
-                                val = None
-                    values[name] = val
-        submitted = st.form_submit_button("Сохранить", width='stretch')
+    values, submitted = render_slice_form(FIELD_DEFS, defaults, "t7_form")
     if submitted:
         t7_upsert_result(person.id, SliceT7Input(**values))
         st.session_state["current_patient_info"] = get_person(person.id)
