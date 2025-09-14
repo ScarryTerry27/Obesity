@@ -48,6 +48,12 @@ def _caprini_label(level):
     return ["Очень низкий", "Низкий", "Умеренный", "Высокий", "Очень высокий"][max(0, min(4, int(level)))]
 
 
+def _las_vegas_label(level):
+    if level is None:
+        return "—"
+    return ["Низкий", "Промежуточный", "Высокий"][max(0, min(2, int(level)))]
+
+
 def _rcri_risk(score):
     if score is None: return "—"
     if score == 0: return "≈0.4%"
@@ -71,12 +77,21 @@ def export_patient_data():
         return
 
     # 2) Подтягиваем все шкалы (каждый вызов безопасный)
+    from database.schemas.elganzouri import ElGanzouriRead
+    from database.schemas.ariscat import AriscatRead
+    from database.schemas.stopbang import StopBangRead
+
     elg = _safe(db_funcs.elg_get_result, person.id, label="El-Ganzouri")  # -> ElGanzouriRead | None
     ar = _safe(db_funcs.ar_get_result, person.id, label="ARISCAT")  # -> AriscatRead | None
     sb = _safe(db_funcs.sb_get_result, person.id, label="STOP-BANG")  # -> StopBangRead | None
     soba = _safe(db_funcs.get_soba, person.id, label="SOBA")  # -> SobaRead | None
     rcri = _safe(db_funcs.rcri_get_result, person.id, label="RCRI")  # -> LeeRcriRead | None
     cap = _safe(db_funcs.caprini_get_result, person.id, label="Caprini")  # -> CapriniRead | None
+    lv = _safe(db_funcs.lv_get_result, person.id, label="Las Vegas")
+    qor = _safe(db_funcs.qor15_get_result, person.id, label="QoR-15")
+    ald = _safe(db_funcs.ald_get_result, person.id, label="Aldrete")
+    mmse_t0 = _safe(db_funcs.mmse_get_result, person.id, 0, label="MMSE t0")
+    mmse_t10 = _safe(db_funcs.mmse_get_result, person.id, 10, label="MMSE t10")
 
     # 2b) Подтягиваем все срезы динамически (T0…T12)
     slices_data = []
@@ -93,7 +108,7 @@ def export_patient_data():
 
     atype = g(person, "anesthesia_type", None)
 
-    row = {
+    base_info = {
         "patient_id": person.id,
         "№ карты": g(person, "card_number", ""),
         "Фамилия": g(person, "last_name", ""),
@@ -108,68 +123,91 @@ def export_patient_data():
         "ИМТ": _bmi(g(person, "weight", None), g(person, "height", None)),
     }
 
-    def add_scale(prefix, obj):
-        if obj is None:
-            return
-        data = obj.model_dump()
-        data.pop("id", None)
-        data.pop("scales_id", None)
-        score = data.pop("total_score", None)
-        if score is not None:
-            row[f"{prefix}: сумма"] = score
-        for field, value in data.items():
-            row[f"{prefix}: {field}"] = value
+    row_scales = dict(base_info)
+    row_slices = dict(base_info)
+
+    def add_scale(row, prefix, obj, schema):
+        fields = [
+            f for f in schema.model_fields
+            if f not in {"id", "scales_id", "total_score", "risk_level"}
+        ]
+        for field in fields:
+            row[f"{prefix}: {field}"] = getattr(obj, field, None) if obj else None
+        row[f"{prefix}: сумма"] = getattr(obj, "total_score", None) if obj else None
+
+    EmptySchema = type("EmptySchema", (), {"model_fields": {}})
 
     # El-Ganzouri
-    add_scale("ELG", elg)
+    add_scale(row_scales, "ELG", elg, ElGanzouriRead)
     if elg is not None:
-        row["ELG: рекомендация"] = _elg_plan(elg.total_score)
+        row_scales["ELG: рекомендация"] = _elg_plan(elg.total_score)
 
     # ARISCAT
-    add_scale("ARISCAT", ar)
+    add_scale(row_scales, "ARISCAT", ar, AriscatRead)
 
     # STOP-BANG
-    add_scale("STOP-BANG", sb)
+    add_scale(row_scales, "STOP-BANG", sb, StopBangRead)
     if sb is not None:
-        row["STOP-BANG: риск"] = _stopbang_label(sb.risk_level)
+        row_scales["STOP-BANG: риск"] = _stopbang_label(sb.risk_level)
 
     # SOBA
-    add_scale("SOBA", soba)
+    add_scale(row_scales, "SOBA", soba, type(soba) if soba else EmptySchema)
     if soba is not None:
-        row["SOBA: STOP-BANG риск (кэш)"] = _stopbang_label(
+        row_scales["SOBA: STOP-BANG риск (кэш)"] = _stopbang_label(
             getattr(soba, "stopbang_risk_cached", None)
         )
 
     # Lee RCRI
-    add_scale("RCRI", rcri)
+    add_scale(row_scales, "RCRI", rcri, type(rcri) if rcri else EmptySchema)
     if rcri is not None:
-        row["RCRI: риск (частота осложнений)"] = _rcri_risk(rcri.total_score)
+        row_scales["RCRI: риск (частота осложнений)"] = _rcri_risk(rcri.total_score)
 
     # Caprini
-    add_scale("Caprini", cap)
+    add_scale(row_scales, "Caprini", cap, type(cap) if cap else EmptySchema)
     if cap is not None:
-        row["Caprini: риск"] = _caprini_label(cap.risk_level)
+        row_scales["Caprini: риск"] = _caprini_label(cap.risk_level)
 
-    # 4) Добавляем все поля срезов в основную строку
+    # Las Vegas
+    add_scale(row_scales, "Las Vegas", lv, type(lv) if lv else EmptySchema)
+    if lv is not None:
+        row_scales["Las Vegas: риск"] = _las_vegas_label(getattr(lv, "risk_level", None))
+
+    # QoR-15
+    add_scale(row_scales, "QoR-15", qor, type(qor) if qor else EmptySchema)
+
+    # Aldrete
+    add_scale(row_scales, "Aldrete", ald, type(ald) if ald else EmptySchema)
+
+    # MMSE
+    add_scale(row_scales, "MMSE t0", mmse_t0, type(mmse_t0) if mmse_t0 else EmptySchema)
+    add_scale(row_scales, "MMSE t10", mmse_t10, type(mmse_t10) if mmse_t10 else EmptySchema)
+
+    # 4) Добавляем все поля срезов
     for name, data, schema in slices_data:
         for field in schema.model_fields.keys():
-            row[f"{name}: {field}"] = getattr(data, field, None) if data is not None else None
+            row_slices[f"{name}: {field}"] = getattr(data, field, None) if data is not None else None
 
     # 5) Покажем и дадим скачать
-    df = pd.DataFrame([row])
-    df.replace({True: 1, False: 0}, inplace=True)
-    st.markdown("### Предпросмотр")
-    st.dataframe(df, width="stretch")
+    df_scales = pd.DataFrame([row_scales])
+    df_slices = pd.DataFrame([row_slices])
+    df_scales.replace({True: 1, False: 0}, inplace=True)
+    df_slices.replace({True: 1, False: 0}, inplace=True)
+    st.markdown("### Предпросмотр шкал")
+    st.dataframe(df_scales, width="stretch")
+    st.markdown("### Предпросмотр срезов")
+    st.dataframe(df_slices, width="stretch")
 
     excel_buf = io.BytesIO()
-    df.to_excel(excel_buf, index=False)
+    with pd.ExcelWriter(excel_buf, engine="openpyxl") as writer:
+        df_scales.to_excel(writer, index=False, sheet_name="Шкалы")
+        df_slices.to_excel(writer, index=False, sheet_name="Срезы")
 
     st.download_button(
         "⬇️ Скачать Excel",
         data=excel_buf.getvalue(),
         file_name=f"patient_{person.id}_export.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        width="stretch",
+        use_container_width=True,
     )
 
     st.caption(
