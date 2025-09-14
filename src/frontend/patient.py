@@ -251,6 +251,10 @@ def export_patients():
     st.title("📤 Выгрузка всех пациентов")
 
     if st.button("Сформировать выгрузку", use_container_width=True):
+        from database.schemas.elganzouri import ElGanzouriRead
+        from database.schemas.ariscat import AriscatRead
+        from database.schemas.stopbang import StopBangRead
+
         persons = search_persons(limit=100000)
         if not persons:
             st.info("Нет данных для экспорта.")
@@ -313,51 +317,49 @@ def export_patients():
             ald = _safe(db_funcs.ald_get_result, person.id, label="Aldrete")
             mm0 = _safe(db_funcs.mmse_get_result, person.id, 0, label="MMSE t0")
             mm10 = _safe(db_funcs.mmse_get_result, person.id, 10, label="MMSE t10")
+            EmptySchema = type("EmptySchema", (), {"model_fields": {}})
 
-            def add_scale(prefix, obj):
-                if obj is None:
-                    return
-                data = obj.model_dump()
-                data.pop("id", None)
-                data.pop("scales_id", None)
-                score = data.pop("total_score", None)
-                if score is not None:
-                    scale_row[f"{prefix}: сумма"] = score
-                for field, value in data.items():
-                    scale_row[f"{prefix}: {field}"] = value
+            def add_scale(prefix, obj, schema):
+                fields = [
+                    f for f in schema.model_fields
+                    if f not in {"id", "scales_id", "total_score", "risk_level"}
+                ]
+                for field in fields:
+                    scale_row[f"{prefix}: {field}"] = getattr(obj, field, None) if obj else None
+                scale_row[f"{prefix}: сумма"] = getattr(obj, "total_score", None) if obj else None
 
-            add_scale("ELG", elg)
+            add_scale("ELG", elg, ElGanzouriRead)
             if elg is not None:
                 scale_row["ELG: рекомендация"] = _elg_plan(elg.total_score)
 
-            add_scale("ARISCAT", ar)
+            add_scale("ARISCAT", ar, AriscatRead)
 
-            add_scale("STOP-BANG", sb)
+            add_scale("STOP-BANG", sb, StopBangRead)
             if sb is not None:
                 scale_row["STOP-BANG: риск"] = _stopbang_label(getattr(sb, "risk_level", None))
 
-            add_scale("SOBA", soba)
+            add_scale("SOBA", soba, type(soba) if soba else EmptySchema)
             if soba is not None:
                 scale_row["SOBA: STOP-BANG риск (кэш)"] = _stopbang_label(getattr(soba, "stopbang_risk_cached", None))
 
-            add_scale("RCRI", rcri)
+            add_scale("RCRI", rcri, type(rcri) if rcri else EmptySchema)
             if rcri is not None:
                 scale_row["RCRI: риск (частота осложнений)"] = _rcri_risk(rcri.total_score)
 
-            add_scale("Caprini", cap)
+            add_scale("Caprini", cap, type(cap) if cap else EmptySchema)
             if cap is not None:
                 scale_row["Caprini: риск"] = _caprini_label(getattr(cap, "risk_level", None))
 
-            add_scale("Las Vegas", lv)
+            add_scale("Las Vegas", lv, type(lv) if lv else EmptySchema)
             if lv is not None:
                 scale_row["Las Vegas: риск"] = _las_vegas_label(getattr(lv, "risk_level", None))
 
-            add_scale("QoR-15", qor)
+            add_scale("QoR-15", qor, type(qor) if qor else EmptySchema)
 
-            add_scale("Aldrete", ald)
+            add_scale("Aldrete", ald, type(ald) if ald else EmptySchema)
 
-            add_scale("MMSE t0", mm0)
-            add_scale("MMSE t10", mm10)
+            add_scale("MMSE t0", mm0, type(mm0) if mm0 else EmptySchema)
+            add_scale("MMSE t10", mm10, type(mm10) if mm10 else EmptySchema)
 
             scale_rows.append(scale_row)
 
