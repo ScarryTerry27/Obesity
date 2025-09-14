@@ -4,6 +4,7 @@ from datetime import date
 
 import pandas as pd
 import streamlit as st
+from functools import reduce
 
 import database.functions as db_funcs
 from database.functions import get_person, create_person, search_persons
@@ -250,147 +251,126 @@ def find_patient():
 def export_patients():
     st.title("📤 Выгрузка всех пациентов")
 
-    if st.button("Сформировать выгрузку", use_container_width=True):
-        from database.schemas.elganzouri import ElGanzouriRead
-        from database.schemas.ariscat import AriscatRead
-        from database.schemas.stopbang import StopBangRead
+    scale_map = {
+        "El-Ganzouri": ("elg", lambda pid: db_funcs.elg_get_result(pid)),
+        "ARISCAT": ("ariscat", lambda pid: db_funcs.ar_get_result(pid)),
+        "STOP-BANG": ("stopbang", lambda pid: db_funcs.sb_get_result(pid)),
+        "SOBA": ("soba", lambda pid: db_funcs.get_soba(pid)),
+        "RCRI": ("rcri", lambda pid: db_funcs.rcri_get_result(pid)),
+        "Caprini": ("caprini", lambda pid: db_funcs.caprini_get_result(pid)),
+        "Las Vegas": ("las_vegas", lambda pid: db_funcs.lv_get_result(pid)),
+        "QoR-15": ("qor15", lambda pid: db_funcs.qor15_get_result(pid)),
+        "Aldrete": ("aldrete", lambda pid: db_funcs.ald_get_result(pid)),
+        "MMSE t0": ("mmse_t0", lambda pid: db_funcs.mmse_get_result(pid, 0)),
+        "MMSE t10": ("mmse_t10", lambda pid: db_funcs.mmse_get_result(pid, 10)),
+    }
+    slice_map = {f"T{i}": (f"t{i}", getattr(db_funcs, f"t{i}_get_result")) for i in range(13)}
 
+    table_labels = ["Пациенты", "Статусы шкал"] + list(scale_map.keys()) + list(slice_map.keys())
+    select_all = st.checkbox("Отметить все")
+    selected = st.multiselect(
+        "Выберите таблицы для выгрузки",
+        table_labels,
+        default=table_labels if select_all else [],
+    )
+    if select_all:
+        selected = table_labels
+
+    if st.button("Сформировать выгрузку", use_container_width=True):
         persons = search_persons(limit=100000)
         if not persons:
             st.info("Нет данных для экспорта.")
             return
 
-        scale_rows = []
-        slice_rows = []
-        for person in persons:
-            atype = getattr(person, "anesthesia_type", None)
-            base = {
-                "patient_id": person.id,
-                "№ карты": getattr(person, "card_number", ""),
-                "Фамилия": getattr(person, "last_name", ""),
-                "Имя": getattr(person, "first_name", ""),
-                "Отчество": getattr(person, "patronymic", ""),
-                "Дата включения": getattr(person, "inclusion_date", None),
-                "Тип анестезии": atype.value if atype else "",
-                "Возраст (лет)": getattr(person, "age", None),
-                "Рост (см)": getattr(person, "height", None),
-                "Вес (кг)": getattr(person, "weight", None),
-                "Пол": "Ж" if bool(getattr(person, "gender", False)) else "М",
-                "ИМТ": _bmi(getattr(person, "weight", None), getattr(person, "height", None)),
-            }
+        base_df = pd.DataFrame({"patient_id": [p.id for p in persons]})
+        dfs = [base_df]
 
-            scale_row = base.copy()
-            slice_row = base.copy()
+        if "Пациенты" in selected:
+            patient_rows = []
+            for person in persons:
+                atype = getattr(person, "anesthesia_type", None)
+                patient_rows.append(
+                    {
+                        "patient_id": person.id,
+                        "card_number": getattr(person, "card_number", ""),
+                        "last_name": getattr(person, "last_name", ""),
+                        "first_name": getattr(person, "first_name", ""),
+                        "patronymic": getattr(person, "patronymic", ""),
+                        "inclusion_date": getattr(person, "inclusion_date", None),
+                        "anesthesia_type": atype.value if atype else "",
+                        "age": getattr(person, "age", None),
+                        "height": getattr(person, "height", None),
+                        "weight": getattr(person, "weight", None),
+                        "gender": "Ж" if bool(getattr(person, "gender", False)) else "М",
+                        "bmi": _bmi(getattr(person, "weight", None), getattr(person, "height", None)),
+                    }
+                )
+            dfs.append(pd.DataFrame(patient_rows))
 
-            # Статусы заполнения шкал и срезов
-            full = _safe(get_person, person.id, label="карточки пациента")
-            scales_status = getattr(full, "scales", None) if full else None
-            slices_status = getattr(full, "slices", None) if full else None
+        if "Статусы шкал" in selected:
+            status_rows = []
+            for person in persons:
+                full = _safe(get_person, person.id, label="карточки пациента")
+                sc = getattr(full, "scales", None) if full else None
+                row = {"patient_id": person.id}
+                if sc:
+                    for field in [
+                        "el_ganzouri_filled",
+                        "ariscat_filled",
+                        "stopbang_filled",
+                        "soba_filled",
+                        "lee_rcri_filled",
+                        "caprini_filled",
+                        "las_vegas_filled",
+                        "aldrete_filled",
+                        "mmse_t0_filled",
+                        "mmse_t10_filled",
+                        "qor15_filled",
+                    ]:
+                        row[field] = bool(getattr(sc, field, False))
+                status_rows.append(row)
+            dfs.append(pd.DataFrame(status_rows))
 
-            if scales_status:
-                scale_row.update({
-                    "El-Ganzouri заполнена": bool(getattr(scales_status, "el_ganzouri_filled", False)),
-                    "ARISCAT заполнена": bool(getattr(scales_status, "ariscat_filled", False)),
-                    "STOP-BANG заполнена": bool(getattr(scales_status, "stopbang_filled", False)),
-                    "SOBA заполнена": bool(getattr(scales_status, "soba_filled", False)),
-                    "RCRI заполнена": bool(getattr(scales_status, "lee_rcri_filled", False)),
-                    "Caprini заполнена": bool(getattr(scales_status, "caprini_filled", False)),
-                    "Las Vegas заполнена": bool(getattr(scales_status, "las_vegas_filled", False)),
-                    "Aldrete заполнена": bool(getattr(scales_status, "aldrete_filled", False)),
-                    "MMSE t0 заполнена": bool(getattr(scales_status, "mmse_t0_filled", False)),
-                    "MMSE t10 заполнена": bool(getattr(scales_status, "mmse_t10_filled", False)),
-                    "QoR-15 заполнена": bool(getattr(scales_status, "qor15_filled", False)),
-                })
+        for label, (prefix, getter) in scale_map.items():
+            if label not in selected:
+                continue
+            rows = []
+            for person in persons:
+                res = _safe(getter, person.id, label=label)
+                row = {"patient_id": person.id}
+                if res is not None:
+                    data = res.model_dump()
+                    data.pop("id", None)
+                    data.pop("scales_id", None)
+                    for k, v in data.items():
+                        row[f"{prefix}_{k}"] = v
+                rows.append(row)
+            dfs.append(pd.DataFrame(rows))
 
-            if slices_status:
-                for idx in range(13):
-                    slice_row[f"T{idx} заполнен"] = bool(getattr(slices_status, f"t{idx}_filled", False))
+        for label, (prefix, getter) in slice_map.items():
+            if label not in selected:
+                continue
+            rows = []
+            for person in persons:
+                res = _safe(getter, person.id, label=f"срез {label}")
+                row = {"patient_id": person.id}
+                if res is not None:
+                    data = res.model_dump()
+                    data.pop("id", None)
+                    data.pop("slices_id", None)
+                    for k, v in data.items():
+                        row[f"{prefix}_{k}"] = v
+                rows.append(row)
+            dfs.append(pd.DataFrame(rows))
 
-            elg = _safe(db_funcs.elg_get_result, person.id, label="El-Ganzouri")
-            ar = _safe(db_funcs.ar_get_result, person.id, label="ARISCAT")
-            sb = _safe(db_funcs.sb_get_result, person.id, label="STOP-BANG")
-            soba = _safe(db_funcs.get_soba, person.id, label="SOBA")
-            rcri = _safe(db_funcs.rcri_get_result, person.id, label="RCRI")
-            cap = _safe(db_funcs.caprini_get_result, person.id, label="Caprini")
-            lv = _safe(db_funcs.lv_get_result, person.id, label="Las Vegas")
-            qor = _safe(db_funcs.qor15_get_result, person.id, label="QoR-15")
-            ald = _safe(db_funcs.ald_get_result, person.id, label="Aldrete")
-            mm0 = _safe(db_funcs.mmse_get_result, person.id, 0, label="MMSE t0")
-            mm10 = _safe(db_funcs.mmse_get_result, person.id, 10, label="MMSE t10")
-            EmptySchema = type("EmptySchema", (), {"model_fields": {}})
+        df_final = reduce(lambda l, r: pd.merge(l, r, on="patient_id", how="left"), dfs)
+        df_final.replace({True: 1, False: 0}, inplace=True)
 
-            def add_scale(prefix, obj, schema):
-                fields = [
-                    f for f in schema.model_fields
-                    if f not in {"id", "scales_id", "total_score", "risk_level"}
-                ]
-                for field in fields:
-                    scale_row[f"{prefix}: {field}"] = getattr(obj, field, None) if obj else None
-                scale_row[f"{prefix}: сумма"] = getattr(obj, "total_score", None) if obj else None
-
-            add_scale("ELG", elg, ElGanzouriRead)
-            if elg is not None:
-                scale_row["ELG: рекомендация"] = _elg_plan(elg.total_score)
-
-            add_scale("ARISCAT", ar, AriscatRead)
-
-            add_scale("STOP-BANG", sb, StopBangRead)
-            if sb is not None:
-                scale_row["STOP-BANG: риск"] = _stopbang_label(getattr(sb, "risk_level", None))
-
-            add_scale("SOBA", soba, type(soba) if soba else EmptySchema)
-            if soba is not None:
-                scale_row["SOBA: STOP-BANG риск (кэш)"] = _stopbang_label(getattr(soba, "stopbang_risk_cached", None))
-
-            add_scale("RCRI", rcri, type(rcri) if rcri else EmptySchema)
-            if rcri is not None:
-                scale_row["RCRI: риск (частота осложнений)"] = _rcri_risk(rcri.total_score)
-
-            add_scale("Caprini", cap, type(cap) if cap else EmptySchema)
-            if cap is not None:
-                scale_row["Caprini: риск"] = _caprini_label(getattr(cap, "risk_level", None))
-
-            add_scale("Las Vegas", lv, type(lv) if lv else EmptySchema)
-            if lv is not None:
-                scale_row["Las Vegas: риск"] = _las_vegas_label(getattr(lv, "risk_level", None))
-
-            add_scale("QoR-15", qor, type(qor) if qor else EmptySchema)
-
-            add_scale("Aldrete", ald, type(ald) if ald else EmptySchema)
-
-            add_scale("MMSE t0", mm0, type(mm0) if mm0 else EmptySchema)
-            add_scale("MMSE t10", mm10, type(mm10) if mm10 else EmptySchema)
-
-            scale_rows.append(scale_row)
-
-            for idx in range(13):
-                getter = getattr(db_funcs, f"t{idx}_get_result", None)
-                data = _safe(getter, person.id, label=f"срез T{idx}") if getter else None
-                if data is not None:
-                    d = data.model_dump()
-                    d.pop("id", None)
-                    d.pop("slices_id", None)
-                    for field, value in d.items():
-                        slice_row[f"T{idx}: {field}"] = value
-
-            slice_rows.append(slice_row)
-
-        df_scales = pd.DataFrame(scale_rows)
-        df_scales.replace({True: 1, False: 0}, inplace=True)
-
-        df_slices = pd.DataFrame(slice_rows)
-        df_slices.replace({True: 1, False: 0}, inplace=True)
-
-        st.markdown("### Предпросмотр шкал")
-        st.dataframe(df_scales, width="stretch")
-        st.markdown("### Предпросмотр срезов")
-        st.dataframe(df_slices, width="stretch")
+        st.markdown("### Предпросмотр")
+        st.dataframe(df_final, width="stretch")
 
         buf = io.BytesIO()
-        with pd.ExcelWriter(buf) as writer:
-            df_scales.to_excel(writer, index=False, sheet_name="Шкалы")
-            df_slices.to_excel(writer, index=False, sheet_name="Срезы")
-
+        df_final.to_excel(buf, index=False)
         st.download_button(
             "⬇️ Скачать Excel",
             data=buf.getvalue(),
