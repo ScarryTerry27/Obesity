@@ -284,7 +284,8 @@ def export_patients():
             return
 
         base_df = pd.DataFrame({"patient_id": [p.id for p in persons]})
-        dfs = [base_df]
+        dfs_scales = [base_df]
+        dfs_slices = [base_df.copy()]
 
         if "Пациенты" in selected:
             patient_rows = []
@@ -306,7 +307,9 @@ def export_patients():
                         "bmi": _bmi(getattr(person, "weight", None), getattr(person, "height", None)),
                     }
                 )
-            dfs.append(pd.DataFrame(patient_rows))
+            patient_df = pd.DataFrame(patient_rows)
+            dfs_scales.append(patient_df)
+            dfs_slices.append(patient_df.copy())
 
         if "Статусы шкал" in selected:
             status_rows = []
@@ -330,7 +333,7 @@ def export_patients():
                     ]:
                         row[field] = bool(getattr(sc, field, False))
                 status_rows.append(row)
-            dfs.append(pd.DataFrame(status_rows))
+            dfs_scales.append(pd.DataFrame(status_rows))
 
         for label, (prefix, getter) in scale_map.items():
             if label not in selected:
@@ -346,7 +349,7 @@ def export_patients():
                     for k, v in data.items():
                         row[f"{prefix}_{k}"] = v
                 rows.append(row)
-            dfs.append(pd.DataFrame(rows))
+            dfs_scales.append(pd.DataFrame(rows))
 
         for label, (prefix, getter) in slice_map.items():
             if label not in selected:
@@ -361,16 +364,22 @@ def export_patients():
                 for f in fields:
                     row[f"{prefix}_{f}"] = getattr(res, f, None) if res is not None else None
                 rows.append(row)
-            dfs.append(pd.DataFrame(rows))
+            dfs_slices.append(pd.DataFrame(rows))
 
-        df_final = reduce(lambda l, r: pd.merge(l, r, on="patient_id", how="left"), dfs)
-        df_final.replace({True: 1, False: 0}, inplace=True)
+        df_scales = reduce(lambda l, r: pd.merge(l, r, on="patient_id", how="left"), dfs_scales)
+        df_slices = reduce(lambda l, r: pd.merge(l, r, on="patient_id", how="left"), dfs_slices)
+        df_scales.replace({True: 1, False: 0}, inplace=True)
+        df_slices.replace({True: 1, False: 0}, inplace=True)
 
-        st.markdown("### Предпросмотр")
-        st.dataframe(df_final, width="stretch")
+        st.markdown("### Предпросмотр шкал")
+        st.dataframe(df_scales, width="stretch")
+        st.markdown("### Предпросмотр срезов")
+        st.dataframe(df_slices, width="stretch")
 
         buf = io.BytesIO()
-        df_final.to_excel(buf, index=False)
+        with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+            df_scales.to_excel(writer, index=False, sheet_name="Шкалы")
+            df_slices.to_excel(writer, index=False, sheet_name="Срезы")
         st.download_button(
             "⬇️ Скачать Excel",
             data=buf.getvalue(),
