@@ -278,6 +278,30 @@ def export_patients():
             scale_row = base.copy()
             slice_row = base.copy()
 
+            # Статусы заполнения шкал и срезов
+            full = _safe(get_person, person.id, label="карточки пациента")
+            scales_status = getattr(full, "scales", None) if full else None
+            slices_status = getattr(full, "slices", None) if full else None
+
+            if scales_status:
+                scale_row.update({
+                    "El-Ganzouri заполнена": bool(getattr(scales_status, "el_ganzouri_filled", False)),
+                    "ARISCAT заполнена": bool(getattr(scales_status, "ariscat_filled", False)),
+                    "STOP-BANG заполнена": bool(getattr(scales_status, "stopbang_filled", False)),
+                    "SOBA заполнена": bool(getattr(scales_status, "soba_filled", False)),
+                    "RCRI заполнена": bool(getattr(scales_status, "lee_rcri_filled", False)),
+                    "Caprini заполнена": bool(getattr(scales_status, "caprini_filled", False)),
+                    "Las Vegas заполнена": bool(getattr(scales_status, "las_vegas_filled", False)),
+                    "Aldrete заполнена": bool(getattr(scales_status, "aldrete_filled", False)),
+                    "MMSE t0 заполнена": bool(getattr(scales_status, "mmse_t0_filled", False)),
+                    "MMSE t10 заполнена": bool(getattr(scales_status, "mmse_t10_filled", False)),
+                    "QoR-15 заполнена": bool(getattr(scales_status, "qor15_filled", False)),
+                })
+
+            if slices_status:
+                for idx in range(13):
+                    slice_row[f"T{idx} заполнен"] = bool(getattr(slices_status, f"t{idx}_filled", False))
+
             elg = _safe(db_funcs.elg_get_result, person.id, label="El-Ganzouri")
             ar = _safe(db_funcs.ar_get_result, person.id, label="ARISCAT")
             sb = _safe(db_funcs.sb_get_result, person.id, label="STOP-BANG")
