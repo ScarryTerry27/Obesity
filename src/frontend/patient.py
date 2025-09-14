@@ -250,68 +250,17 @@ def find_patient():
 def export_patients():
     st.title("📤 Выгрузка всех пациентов")
 
-    scales = {
-        "ELG": "El-Ganzouri",
-        "ARISCAT": "ARISCAT",
-        "STOP-BANG": "STOP-BANG",
-        "SOBA": "SOBA",
-        "RCRI": "RCRI",
-        "Caprini": "Caprini",
-        "LasVegas": "Las Vegas",
-        "QoR-15": "QoR-15",
-        "Aldrete": "Aldrete",
-        "MMSE_t0": "MMSE t0",
-        "MMSE_t10": "MMSE t10",
-    }
-
-    slices = {
-        "T0": db_funcs.t0_get_result,
-        "T1": db_funcs.t1_get_result,
-        "T2": db_funcs.t2_get_result,
-        "T3": db_funcs.t3_get_result,
-        "T4": db_funcs.t4_get_result,
-        "T5": db_funcs.t5_get_result,
-        "T6": db_funcs.t6_get_result,
-        "T7": db_funcs.t7_get_result,
-        "T8": db_funcs.t8_get_result,
-        "T9": db_funcs.t9_get_result,
-        "T10": db_funcs.t10_get_result,
-        "T11": db_funcs.t11_get_result,
-        "T12": db_funcs.t12_get_result,
-    }
-
-    def _select_all():
-        for k in scales:
-            st.session_state[f"scale_{k}"] = True
-        for k in slices:
-            st.session_state[f"slice_{k}"] = True
-
-    st.checkbox("Выгрузить всё", key="export_all_db", on_change=_select_all)
-
-    col_scales, col_slices = st.columns(2)
-    with col_scales:
-        st.markdown("#### Шкалы")
-        for key, label in scales.items():
-            st.checkbox(label, key=f"scale_{key}")
-
-    with col_slices:
-        st.markdown("#### Срезы")
-        for key in slices:
-            st.checkbox(key, key=f"slice_{key}")
-
     if st.button("Сформировать выгрузку", use_container_width=True):
-        selected_scales = [k for k in scales if st.session_state.get(f"scale_{k}")]
-        selected_slices = [k for k in slices if st.session_state.get(f"slice_{k}")]
-
-        if not selected_scales and not selected_slices:
-            st.warning("Выберите хотя бы одну шкалу или срез.")
+        persons = search_persons(limit=100000)
+        if not persons:
+            st.info("Нет данных для экспорта.")
             return
 
-        persons = search_persons(limit=100000)
-        rows = []
+        scale_rows = []
+        slice_rows = []
         for person in persons:
             atype = getattr(person, "anesthesia_type", None)
-            row = {
+            base = {
                 "patient_id": person.id,
                 "№ карты": getattr(person, "card_number", ""),
                 "Фамилия": getattr(person, "last_name", ""),
@@ -326,87 +275,95 @@ def export_patients():
                 "ИМТ": _bmi(getattr(person, "weight", None), getattr(person, "height", None)),
             }
 
-            if "ELG" in selected_scales:
-                elg = _safe(db_funcs.elg_get_result, person.id, label="El-Ganzouri")
-                score = getattr(elg, "total_score", None)
-                row["ELG: сумма"] = score
-                row["ELG: рекомендация"] = _elg_plan(score)
+            scale_row = base.copy()
+            slice_row = base.copy()
 
-            if "ARISCAT" in selected_scales:
-                ar = _safe(db_funcs.ar_get_result, person.id, label="ARISCAT")
-                row["ARISCAT: сумма"] = getattr(ar, "total_score", None)
+            elg = _safe(db_funcs.elg_get_result, person.id, label="El-Ganzouri")
+            ar = _safe(db_funcs.ar_get_result, person.id, label="ARISCAT")
+            sb = _safe(db_funcs.sb_get_result, person.id, label="STOP-BANG")
+            soba = _safe(db_funcs.get_soba, person.id, label="SOBA")
+            rcri = _safe(db_funcs.rcri_get_result, person.id, label="RCRI")
+            cap = _safe(db_funcs.caprini_get_result, person.id, label="Caprini")
+            lv = _safe(db_funcs.lv_get_result, person.id, label="Las Vegas")
+            qor = _safe(db_funcs.qor15_get_result, person.id, label="QoR-15")
+            ald = _safe(db_funcs.ald_get_result, person.id, label="Aldrete")
+            mm0 = _safe(db_funcs.mmse_get_result, person.id, 0, label="MMSE t0")
+            mm10 = _safe(db_funcs.mmse_get_result, person.id, 10, label="MMSE t10")
 
-            if "STOP-BANG" in selected_scales:
-                sb = _safe(db_funcs.sb_get_result, person.id, label="STOP-BANG")
-                row["STOP-BANG: сумма"] = getattr(sb, "total_score", None)
-                row["STOP-BANG: риск"] = _stopbang_label(getattr(sb, "risk_level", None))
+            def add_scale(prefix, obj):
+                if obj is None:
+                    return
+                data = obj.model_dump()
+                data.pop("id", None)
+                data.pop("scales_id", None)
+                score = data.pop("total_score", None)
+                if score is not None:
+                    scale_row[f"{prefix}: сумма"] = score
+                for field, value in data.items():
+                    scale_row[f"{prefix}: {field}"] = value
 
-            if "SOBA" in selected_scales:
-                soba = _safe(db_funcs.get_soba, person.id, label="SOBA")
-                row["SOBA: STOP-BANG сумма (кэш)"] = getattr(soba, "stopbang_score_cached", None)
-                row["SOBA: STOP-BANG риск (кэш)"] = _stopbang_label(getattr(soba, "stopbang_risk_cached", None))
-                row["SOBA: плохая ФН"] = getattr(soba, "poor_functional_status", None)
-                row["SOBA: изменения ЭКГ"] = getattr(soba, "ekg_changes", None)
-                row["SOBA: неконтр. АГ/ИБС"] = getattr(soba, "uncontrolled_htn_ihd", None)
-                row["SOBA: SpO₂<94%"] = getattr(soba, "spo2_room_air_lt_94", None)
-                row["SOBA: PaCO₂>28"] = getattr(soba, "hypercapnia_co2_gt_28", None)
-                row["SOBA: ТГВ/ТЭЛА анамнез"] = getattr(soba, "vte_history", None)
+            add_scale("ELG", elg)
+            if elg is not None:
+                scale_row["ELG: рекомендация"] = _elg_plan(elg.total_score)
 
-            if "RCRI" in selected_scales:
-                rcri = _safe(db_funcs.rcri_get_result, person.id, label="RCRI")
-                score = getattr(rcri, "total_score", None)
-                row["RCRI: сумма"] = score
-                row["RCRI: риск (частота осложнений)"] = _rcri_risk(score)
+            add_scale("ARISCAT", ar)
 
-            if "Caprini" in selected_scales:
-                cap = _safe(db_funcs.caprini_get_result, person.id, label="Caprini")
-                row["Caprini: сумма"] = getattr(cap, "total_score", None)
-                row["Caprini: риск"] = _caprini_label(getattr(cap, "risk_level", None))
+            add_scale("STOP-BANG", sb)
+            if sb is not None:
+                scale_row["STOP-BANG: риск"] = _stopbang_label(getattr(sb, "risk_level", None))
 
-            if "LasVegas" in selected_scales:
-                lv = _safe(db_funcs.lv_get_result, person.id, label="Las Vegas")
-                row["Las Vegas: сумма"] = getattr(lv, "total_score", None)
-                row["Las Vegas: риск"] = _las_vegas_label(getattr(lv, "risk_level", None))
+            add_scale("SOBA", soba)
+            if soba is not None:
+                scale_row["SOBA: STOP-BANG риск (кэш)"] = _stopbang_label(getattr(soba, "stopbang_risk_cached", None))
 
-            if "QoR-15" in selected_scales:
-                qor = _safe(db_funcs.qor15_get_result, person.id, label="QoR-15")
-                row["QoR-15: сумма"] = getattr(qor, "total_score", None)
+            add_scale("RCRI", rcri)
+            if rcri is not None:
+                scale_row["RCRI: риск (частота осложнений)"] = _rcri_risk(rcri.total_score)
 
-            if "Aldrete" in selected_scales:
-                ald = _safe(db_funcs.ald_get_result, person.id, label="Aldrete")
-                row["Aldrete: сумма"] = getattr(ald, "total_score", None)
+            add_scale("Caprini", cap)
+            if cap is not None:
+                scale_row["Caprini: риск"] = _caprini_label(getattr(cap, "risk_level", None))
 
-            if "MMSE_t0" in selected_scales:
-                mm0 = _safe(db_funcs.mmse_get_result, person.id, 0, label="MMSE t0")
-                row["MMSE t0: сумма"] = getattr(mm0, "total_score", None)
+            add_scale("Las Vegas", lv)
+            if lv is not None:
+                scale_row["Las Vegas: риск"] = _las_vegas_label(getattr(lv, "risk_level", None))
 
-            if "MMSE_t10" in selected_scales:
-                mm10 = _safe(db_funcs.mmse_get_result, person.id, 10, label="MMSE t10")
-                row["MMSE t10: сумма"] = getattr(mm10, "total_score", None)
+            add_scale("QoR-15", qor)
 
-            for slice_key in selected_slices:
-                data = _safe(slices[slice_key], person.id, label=f"срез {slice_key}")
+            add_scale("Aldrete", ald)
+
+            add_scale("MMSE t0", mm0)
+            add_scale("MMSE t10", mm10)
+
+            scale_rows.append(scale_row)
+
+            for idx in range(13):
+                getter = getattr(db_funcs, f"t{idx}_get_result", None)
+                data = _safe(getter, person.id, label=f"срез T{idx}") if getter else None
                 if data is not None:
                     d = data.model_dump()
                     d.pop("id", None)
                     d.pop("slices_id", None)
                     for field, value in d.items():
-                        row[f"{slice_key}: {field}"] = value
+                        slice_row[f"T{idx}: {field}"] = value
 
-            rows.append(row)
+            slice_rows.append(slice_row)
 
-        if not rows:
-            st.info("Нет данных для экспорта.")
-            return
+        df_scales = pd.DataFrame(scale_rows)
+        df_scales.replace({True: 1, False: 0}, inplace=True)
 
-        df = pd.DataFrame(rows)
-        df.replace({True: 1, False: 0}, inplace=True)
-        st.markdown("### Предпросмотр")
-        st.dataframe(df, width="stretch")
+        df_slices = pd.DataFrame(slice_rows)
+        df_slices.replace({True: 1, False: 0}, inplace=True)
+
+        st.markdown("### Предпросмотр шкал")
+        st.dataframe(df_scales, width="stretch")
+        st.markdown("### Предпросмотр срезов")
+        st.dataframe(df_slices, width="stretch")
 
         buf = io.BytesIO()
         with pd.ExcelWriter(buf) as writer:
-            df.to_excel(writer, index=False, sheet_name="Пациенты")
+            df_scales.to_excel(writer, index=False, sheet_name="Шкалы")
+            df_slices.to_excel(writer, index=False, sheet_name="Срезы")
 
         st.download_button(
             "⬇️ Скачать Excel",
