@@ -95,6 +95,37 @@ NUMERIC_LIMITS = {
     "vt": (0, 1000),
 }
 
+INT_FIELDS = {
+    "rr_spont",
+    "f",
+    "heart_rate",
+    "heart_rate_min",
+    "heart_rate_max",
+    "sbp",
+    "sbp_min",
+    "sbp_max",
+    "dbp",
+    "dbp_min",
+    "dbp_max",
+    "map",
+    "map_min",
+    "map_max",
+    "spo2",
+    "sao2",
+    "urine_ml_per_h",
+    "hemoglobin",
+    "stroke_volume",
+    "pain_nrs",
+    "pain_nrs_min",
+    "pain_nrs_max",
+    "aldrete_score",
+    "aldrete_time",
+    "urinary_catheter_pain",
+    "qor15",
+    "uzl_score",
+    "infusion_volume",
+}
+
 
 def create_big_button(label, on_click=None, kwargs=None, icon=None, key=None):
     st.button(label, on_click=on_click, kwargs=kwargs, width='stretch', icon=icon, key=key)
@@ -135,6 +166,8 @@ def render_slice_form(field_defs, defaults, form_key):
         for i in range(0, len(field_defs), 4):
             cols = st.columns(4)
             for col, (name, label, placeholder, ftype) in zip(cols, field_defs[i : i + 4]):
+                if name in INT_FIELDS:
+                    ftype = "int"
                 default = defaults.get(name)
                 with col:
                     values[name] = _render_field(name, label, placeholder, ftype, default)
