@@ -40,8 +40,6 @@ class SliceT0Input(BaseModel):
     nlr: Optional[float] = None
     glucose: Optional[float] = None
     polo: Optional[bool] = None
-    phrenic_syndrome: Optional[bool] = None
-    phrenic_crsh: Optional[bool] = None
     aki: Optional[bool] = None
     complications: Optional[str] = None
     pain_nrs: Optional[float] = None

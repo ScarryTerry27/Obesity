@@ -50,8 +50,6 @@ class SliceT8Input(BaseModel):
     t_before_extubation: Optional[float] = None
     infusion_volume: Optional[float] = None
     polo: Optional[bool] = None
-    phrenic_syndrome: Optional[bool] = None
-    phrenic_crsh: Optional[bool] = None
     aki: Optional[bool] = None
     complications: Optional[str] = None
     pain_nrs: Optional[float] = None

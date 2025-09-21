@@ -11,17 +11,9 @@ class SliceT1Input(BaseModel):
     time: Optional[Time] = None
     rr_spont: Optional[float] = None
     heart_rate: Optional[float] = None
-    heart_rate_min: Optional[float] = None
-    heart_rate_max: Optional[float] = None
     sbp: Optional[float] = None
-    sbp_min: Optional[float] = None
-    sbp_max: Optional[float] = None
     dbp: Optional[float] = None
-    dbp_min: Optional[float] = None
-    dbp_max: Optional[float] = None
     map: Optional[float] = None
-    map_min: Optional[float] = None
-    map_max: Optional[float] = None
     spo2: Optional[float] = None
     urine_ml_per_h: Optional[float] = None
     hemoglobin: Optional[float] = None
@@ -42,8 +34,6 @@ class SliceT1Input(BaseModel):
     paco2: Optional[float] = None
     sao2: Optional[float] = None
     polo: Optional[bool] = None
-    phrenic_syndrome: Optional[bool] = None
-    phrenic_crsh: Optional[bool] = None
     aki: Optional[bool] = None
     complications: Optional[str] = None
     pain_nrs: Optional[float] = None

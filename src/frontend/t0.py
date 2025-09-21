@@ -38,8 +38,6 @@ FIELD_DEFS = [
     ("nlr", "NLR", "", "float"),
     ("glucose", "Глюкоза крови", "ммоль/л", "float"),
     ("polo", "ПОЛО", "", "bool"),
-    ("phrenic_syndrome", "Френикус синд.", "", "bool"),
-    ("phrenic_crsh", "Френикус/ ЦРШ", "", "bool"),
     ("aki", "ОПП", "", "bool"),
     ("complications", "Осложнения", "", "str"),
     ("pain_nrs", "Боль/ ЦРШ", "баллы", "float"),
